@@ -116,4 +116,4 @@ Ez a projekt az MIT licenc alatt áll. Lásd a LICENSE fájlt részletekért.
 Kérdések, javaslatok: [email protected]
 
 ## Köszönet
-Köszönjük minden közreműködőnek és tesztelőnek a segítségüket a projekt fejlesztésében! 
+Köszönjük minden közreműködőnek és tesztelőnek a segítségüket a projekt fejlesztésében!
