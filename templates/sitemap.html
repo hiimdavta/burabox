@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Oldaltérkép</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="sitemap-section">
+                        <h2 class="h4 mb-3">Főoldalak</h2>
+                        <ul class="sitemap-list">
+                            <li><a href="{{ url_for('landing_page') }}">Kezdőoldal</a></li>
+                            <li><a href="{{ url_for('index') }}">Főoldal</a></li>
+                            <li><a href="{{ url_for('about') }}">Rólunk</a></li>
+                            <li><a href="{{ url_for('contact') }}">Kapcsolat</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="sitemap-section">
+                        <h2 class="h4 mb-3">Felhasználói oldalak</h2>
+                        <ul class="sitemap-list">
+                            <li><a href="{{ url_for('login') }}">Bejelentkezés</a></li>
+                            <li><a href="{{ url_for('register') }}">Regisztráció</a></li>
+                            <li><a href="{{ url_for('profile') }}">Profil</a></li>
+                            <li><a href="{{ url_for('upload_page') }}">Fájlfeltöltés</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="sitemap-section">
+                        <h2 class="h4 mb-3">Adminisztrációs oldalak</h2>
+                        <ul class="sitemap-list">
+                            <li><a href="{{ url_for('admin_dashboard') }}">Admin vezérlőpult</a></li>
+                            <li><a href="{{ url_for('teacher_management') }}">Tanárkezelés</a></li>
+                            <li><a href="{{ url_for('class_management') }}">Osztálykezelés</a></li>
+                            <li><a href="{{ url_for('add_students') }}">Tanuló hozzáadása</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <hr class="my-4">
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="sitemap-section">
+                        <h2 class="h4 mb-3">Információs oldalak</h2>
+                        <ul class="sitemap-list">
+                            <li><a href="{{ url_for('privacy') }}">Adatvédelmi nyilatkozat</a></li>
+                            <li><a href="{{ url_for('terms') }}">Felhasználási feltételek</a></li>
+                            <li><a href="{{ url_for('sitemap') }}">Oldaltérkép</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="sitemap-section">
+                        <h2 class="h4 mb-3">Tanári oldalak</h2>
+                        <ul class="sitemap-list">
+                            <li><a href="{{ url_for('teacher_dashboard') }}">Tanári vezérlőpult</a></li>
+                            <li><a href="{{ url_for('class_files') }}">Osztály fájljai</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="sitemap-section">
+                        <h2 class="h4 mb-3">Egyéb</h2>
+                        <ul class="sitemap-list">
+                            <li><a href="{{ url_for('logout') }}">Kijelentkezés</a></li>
+                            <li><a href="{{ url_for('password_reset_request') }}">Jelszó visszaállítása</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sitemap-section {
+    margin-bottom: 2rem;
+}
+
+.sitemap-list {
+    list-style: none;
+    padding-left: 0;
+}
+
+.sitemap-list li {
+    margin-bottom: 0.5rem;
+}
+
+.sitemap-list a {
+    color: var(--gray-700);
+    text-decoration: none;
+    transition: color var(--transition-duration);
+    display: inline-block;
+    padding: 0.25rem 0;
+}
+
+.sitemap-list a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .sitemap-section {
+        margin-bottom: 1.5rem;
+    }
+}
+</style>
+{% endblock %} 

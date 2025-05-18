@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Kapcsolat</h1>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-4">Kapcsolati űrlap</h2>
+                    
+                    <form method="POST" action="{{ url_for('contact') }}" class="contact-form">
+                        {{ form.csrf_token }}
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Név *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-mail cím *</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Tárgy *</label>
+                            <select class="form-select" id="subject" name="subject" required>
+                                <option value="">Válasszon...</option>
+                                <option value="general">Általános kérdés</option>
+                                <option value="technical">Technikai probléma</option>
+                                <option value="feedback">Visszajelzés</option>
+                                <option value="other">Egyéb</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="message" class="form-label">Üzenet *</label>
+                            <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="privacy" name="privacy" required>
+                            <label class="form-check-label" for="privacy">
+                                Elfogadom az <a href="{{ url_for('privacy') }}">adatvédelmi nyilatkozatot</a> *
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane me-2"></i>Üzenet küldése
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-4">Elérhetőségeink</h2>
+                    
+                    <div class="contact-info">
+                        <div class="contact-item mb-4">
+                            <i class="fas fa-map-marker-alt fa-2x text-primary mb-3"></i>
+                            <h3 class="h5">Cím</h3>
+                            <p>1234 Budapest<br>Példa utca 123.</p>
+                        </div>
+                        
+                        <div class="contact-item mb-4">
+                            <i class="fas fa-phone fa-2x text-primary mb-3"></i>
+                            <h3 class="h5">Telefon</h3>
+                            <p><a href="tel:+36123456789">+36 12 345 6789</a></p>
+                        </div>
+                        
+                        <div class="contact-item mb-4">
+                            <i class="fas fa-envelope fa-2x text-primary mb-3"></i>
+                            <h3 class="h5">E-mail</h3>
+                            <p><a href="mailto:info@example.com">info@example.com</a></p>
+                        </div>
+                        
+                        <div class="contact-item">
+                            <i class="fas fa-clock fa-2x text-primary mb-3"></i>
+                            <h3 class="h5">Nyitvatartás</h3>
+                            <p>Hétfő - Péntek: 8:00 - 16:00<br>
+                            Szombat - Vasárnap: Zárva</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="h4 mb-4">Kövess minket</h2>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Facebook">
+                            <i class="fab fa-facebook fa-2x"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Twitter">
+                            <i class="fab fa-twitter fa-2x"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="Instagram">
+                            <i class="fab fa-instagram fa-2x"></i>
+                        </a>
+                        <a href="#" class="social-link" aria-label="LinkedIn">
+                            <i class="fab fa-linkedin fa-2x"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.contact-form .form-control,
+.contact-form .form-select {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gray-300);
+    padding: 0.75rem;
+}
+
+.contact-form .form-control:focus,
+.contact-form .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(196, 30, 58, 0.25);
+}
+
+.contact-item {
+    text-align: center;
+    padding: 1.5rem;
+    background-color: var(--gray-100);
+    border-radius: var(--radius-md);
+    transition: transform var(--transition-duration);
+}
+
+.contact-item:hover {
+    transform: translateY(-5px);
+}
+
+.social-links {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+}
+
+.social-link {
+    color: var(--primary-color);
+    transition: color var(--transition-duration);
+}
+
+.social-link:hover {
+    color: var(--primary-dark);
+}
+
+@media (max-width: 768px) {
+    .contact-item {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %} 

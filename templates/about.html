@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Rólunk</h1>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 class="h4 mb-3">Az Iskolai Fájlkezelő rendszer</h2>
+                    <p class="lead">Modern, biztonságos és felhasználóbarát megoldás az iskolai dokumentumok kezelésére.</p>
+                    
+                    <h3 class="h5 mt-4 mb-3">Céljaink</h3>
+                    <ul>
+                        <li>Egyszerűsíteni a dokumentumok kezelését</li>
+                        <li>Biztonságos tárolást biztosítani</li>
+                        <li>Hatékony munkát segíteni</li>
+                        <li>Környezetbarát megoldást nyújtani</li>
+                    </ul>
+                    
+                    <h3 class="h5 mt-4 mb-3">Főbb funkciók</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="feature-card">
+                                <i class="fas fa-file-upload fa-2x text-primary mb-3"></i>
+                                <h4 class="h6">Fájlfeltöltés</h4>
+                                <p>Egyszerű és gyors dokumentumfeltöltés különböző formátumokban</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="feature-card">
+                                <i class="fas fa-shield-alt fa-2x text-primary mb-3"></i>
+                                <h4 class="h6">Biztonság</h4>
+                                <p>Megbízható adatvédelem és hozzáférés-kezelés</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="feature-card">
+                                <i class="fas fa-users fa-2x text-primary mb-3"></i>
+                                <h4 class="h6">Felhasználókezelés</h4>
+                                <p>Különböző jogosultsági szintek és szerepkörök</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="feature-card">
+                                <i class="fas fa-search fa-2x text-primary mb-3"></i>
+                                <h4 class="h6">Keresés</h4>
+                                <p>Gyors és pontos dokumentumkeresés</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">Kapcsolat</h3>
+                    <p>Ha bármilyen kérdése van, keressen minket bizalommal:</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            <a href="mailto:info@example.com">info@example.com</a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-primary"></i>
+                            <a href="tel:+36123456789">+36 12 345 6789</a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                            1234 Budapest, Példa utca 123.
+                        </li>
+                    </ul>
+                    <a href="{{ url_for('contact') }}" class="btn btn-primary w-100 mt-3">
+                        <i class="fas fa-paper-plane me-2"></i>Kapcsolati űrlap
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.feature-card {
+    padding: 1.5rem;
+    background-color: var(--gray-100);
+    border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    text-align: center;
+    transition: transform var(--transition-duration);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+@media (max-width: 768px) {
+    .feature-card {
+        margin-bottom: 1rem;
+    }
+}
+</style>
+{% endblock %} 
