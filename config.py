@@ -8,8 +8,8 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
     
     # Admin credentials (in production, these should be in environment variables)
-    ADMIN_USERNAME = 'admin'
-    ADMIN_PASSWORD = 'admin123'  # Change this in production!
+    ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME', 'admin')
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD')
     
     # Ensure upload directory exists
     @staticmethod
