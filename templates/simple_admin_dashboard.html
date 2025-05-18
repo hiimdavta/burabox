@@ -1,0 +1,1848 @@
+{% extends "base.html" %}
+
+{% block title %}Admin vezérlőpult{% endblock %}
+
+{% block meta_description %}Adminisztrátori vezérlőpult a BuraBox fájlkezelő rendszerhez{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        margin: 2rem auto;
+    }
+    .card {
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .card-title {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #333;
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .table-responsive {
+        margin-top: 1rem;
+    }
+    .table th {
+        cursor: pointer;
+        background-color: #f8f9fa;
+    }
+    .table th:hover {
+        background-color: #e9ecef;
+    }
+    .alert {
+        margin: 1rem 0;
+    }
+    .btn-group {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .actions-cell {
+        text-align: right;
+        min-width: 200px;
+    }
+    .table td.actions-cell {
+        text-align: right;
+    }
+    .table th.actions-header {
+        text-align: right;
+    }
+
+    /* Új stílusok a kereséshez és lapozáshoz */
+    .search-box {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    .search-input {
+        width: 100%;
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .page-item {
+        display: inline-block;
+    }
+    .page-link {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        color: #333;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .page-link:hover {
+        background-color: #f8f9fa;
+        border-color: #ddd;
+    }
+    .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        pointer-events: none;
+        background-color: #fff;
+        border-color: #ddd;
+    }
+
+    /* Teljesítmény indikátorok */
+    .stats-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    .stat-card {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #007bff;
+        margin-bottom: 0.5rem;
+    }
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+    }
+    .progress {
+        height: 4px;
+        margin-top: 0.5rem;
+        border-radius: 2px;
+    }
+    .progress-bar {
+        width: 0;
+        height: 100%;
+        background-color: #007bff;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+    }
+    .progress-bar[style*="width"] {
+        min-width: 2%;
+    }
+    
+    /* Reszponzív design finomítások */
+    @media (max-width: 768px) {
+        .stats-container {
+            grid-template-columns: 1fr;
+        }
+        .card-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        .btn-group {
+            flex-direction: column;
+        }
+        .actions-cell {
+            min-width: 120px;
+        }
+    }
+
+    /* Táblázat optimalizálások */
+    .table-wrapper {
+        position: relative;
+        max-height: 600px;
+        overflow: auto;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table thead th {
+        position: sticky;
+        top: 0;
+        background: #f8f9fa;
+        z-index: 1;
+        border-bottom: 2px solid #dee2e6;
+        cursor: pointer;
+        padding: 1rem;
+        white-space: nowrap;
+    }
+    
+    .table th.sortable:hover {
+        background-color: #e9ecef;
+    }
+    
+    .table th.sortable::after {
+        content: "↕";
+        margin-left: 5px;
+        opacity: 0.3;
+    }
+    
+    .table th.sortable.asc::after {
+        content: "↑";
+        opacity: 1;
+    }
+    
+    .table th.sortable.desc::after {
+        content: "↓";
+        opacity: 1;
+    }
+    
+    /* Keresés és szűrés */
+    .table-controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .search-box {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+    }
+    
+    .filter-box {
+        min-width: 150px;
+    }
+    
+    .filter-box select {
+        width: 100%;
+        padding: 0.5rem 2.25rem 0.5rem 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 0.25rem;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 12px;
+    }
+    
+    /* Lapozás */
+    .table-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 1rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .page-size-selector {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .page-info {
+        color: #666;
+        white-space: nowrap;
+    }
+    
+    .pagination {
+        margin: 0;
+    }
+    
+    /* Reszponzív design */
+    @media (max-width: 768px) {
+        .table-controls {
+            flex-direction: column;
+        }
+        
+        .search-box,
+        .filter-box {
+            width: 100%;
+        }
+        
+        .table-footer {
+            flex-direction: column;
+            align-items: stretch;
+            text-align: center;
+        }
+        
+        .page-size-selector {
+            justify-content: center;
+        }
+    }
+
+    /* Progress bar dinamikus stílusok */
+    .progress-bar[data-width] {
+        width: attr(data-width);
+    }
+
+    .class-checkboxes {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 10px;
+    }
+    .class-checkbox-item {
+        margin-bottom: 8px;
+    }
+    .class-checkbox-item:last-child {
+        margin-bottom: 0;
+    }
+
+    /* Accordion stílusok */
+    .accordion-button {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        color: #212529;
+        text-align: left;
+        background-color: #fff;
+        border: 0;
+        border-radius: 0;
+        overflow-anchor: none;
+        transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out,border-radius .15s ease;
+    }
+
+    /* Eltávolítjuk a Bootstrap alapértelmezett nyilát */
+    .accordion-button::after {
+        display: none !important;
+    }
+
+    .accordion-button:not(.collapsed) {
+        color: #0c63e4;
+        background-color: #e7f1ff;
+        box-shadow: inset 0 -1px 0 rgba(0,0,0,.125);
+    }
+
+    .accordion-button:not(.collapsed) .fa-chevron-down {
+        transform: rotate(180deg);
+    }
+
+    .transition-transform {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .fa-chevron-down {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .accordion-item {
+        border: 1px solid rgba(0,0,0,.125);
+        margin-bottom: 0.5rem;
+    }
+    .accordion-item:first-of-type {
+        border-top-left-radius: 0.25rem;
+        border-top-right-radius: 0.25rem;
+    }
+    .accordion-item:first-of-type .accordion-button {
+        border-top-left-radius: calc(0.25rem - 1px);
+        border-top-right-radius: calc(0.25rem - 1px);
+    }
+    .accordion-item:last-of-type {
+        border-bottom-left-radius: 0.25rem;
+        border-bottom-right-radius: 0.25rem;
+    }
+    .accordion-item:last-of-type .accordion-button.collapsed {
+        border-bottom-left-radius: calc(0.25rem - 1px);
+        border-bottom-right-radius: calc(0.25rem - 1px);
+    }
+    .accordion-body {
+        padding: 1rem;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,.075);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<body>
+    <!-- Toast container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto" id="toastTitle">Értesítés</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage"></div>
+        </div>
+    </div>
+
+    <div class="container dashboard-container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="mb-4">Admin vezérlőpult</h1>
+
+                <!-- Teljesítmény indikátorok -->
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ teacher_count }}</div>
+                        <div class="stat-label">Tanárok</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ class_count }}</div>
+                        <div class="stat-label">Osztályok</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">{{ student_count }}</div>
+                        <div class="stat-label">Diákok</div>
+                    </div>
+                </div>
+                
+                <!-- Osztály létrehozása modal -->
+                <div class="modal fade" id="addClassModal" tabindex="-1" aria-labelledby="addClassModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addClassModalLabel">Új osztály létrehozása</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="addClassForm">
+                                    <div class="form-group">
+                                        <label for="class_name">Osztály neve:</label>
+                                        <input type="text" class="form-control" id="class_name" name="class_name" required>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                                <button type="button" class="btn btn-primary" id="createClassBtn">Létrehozás</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Osztály szerkesztése modal -->
+                <div class="modal fade" id="editClassModal" tabindex="-1" aria-labelledby="editClassModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editClassModalLabel">Osztály szerkesztése</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editClassForm">
+                                    <input type="hidden" id="editClassId" name="class_id">
+                                    <input type="hidden" id="editClassOriginalName" name="original_class_name">
+                                    <div class="mb-3">
+                                        <label for="editClassName" class="form-label">Osztály neve</label>
+                                        <input type="text" class="form-control" id="editClassName" name="class_name" required>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                                <button type="button" class="btn btn-primary" onclick="updateClass()">Mentés</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Új tanár modal -->
+                <div class="modal fade" id="addTeacherModal" tabindex="-1" aria-labelledby="addTeacherModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="addTeacherModalLabel">Új tanár létrehozása</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="addTeacherForm">
+                                    <div class="form-group mb-3">
+                                        <label for="teacher_name">Tanár neve:</label>
+                                        <input type="text" class="form-control" id="teacher_name" name="teacher_name" required>
+                                    </div>
+                                    <div class="form-group mb-3">
+                                        <label for="teacher_password">Jelszó:</label>
+                                        <input type="password" class="form-control" id="teacher_password" name="teacher_password" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="teacher_password_confirm">Jelszó megerősítése:</label>
+                                        <input type="password" class="form-control" id="teacher_password_confirm" name="teacher_password_confirm" required>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                                <button type="button" class="btn btn-primary" id="createTeacherBtn">Létrehozás</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tanár szerkesztése modal -->
+                <div class="modal fade" id="editTeacherModal" tabindex="-1" aria-labelledby="editTeacherModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="editTeacherModalLabel">Tanár szerkesztése</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editTeacherForm">
+                                    <input type="hidden" id="editTeacherId" name="teacher_id">
+                                    <div class="mb-3">
+                                        <label for="editTeacherName" class="form-label">Tanár neve</label>
+                                        <input type="text" class="form-control" id="editTeacherName" name="teacher_name" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="editTeacherPassword" class="form-label">Új jelszó (hagyja üresen, ha nem szeretné módosítani)</label>
+                                        <input type="password" class="form-control" id="editTeacherPassword" name="password">
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                                <button type="button" class="btn btn-primary" onclick="updateTeacher()">Mentés</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Osztályok kezelése -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title">Osztályok kezelése</h5>
+                        <button class="btn btn-primary" onclick="showCreateClassModal()">Új osztály</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="classTable">
+                                <thead>
+                                    <tr>
+                                        <th>Osztály neve</th>
+                                        <th class="actions-header">Műveletek</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for class in classes %}
+                                    <tr>
+                                        <td>{{ class.class_name }}</td>
+                                        <td class="actions-cell">
+                                            <button class="btn btn-sm btn-primary" onclick="showEditClassModal('{{ class.id }}', '{{ class.class_name }}')">Szerkesztés</button>
+                                            <button class="btn btn-sm btn-danger" onclick="showDeleteClassModal('{{ class.id }}', '{{ class.class_name }}')">Törlés</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tanárok kezelése -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title">Tanárok kezelése</h5>
+                        <button class="btn btn-primary" onclick="showCreateTeacherModal()">Új tanár</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table" id="teacherTable">
+                                <thead>
+                                    <tr>
+                                        <th>Tanár neve</th>
+                                        <th>Osztályok</th>
+                                        <th class="actions-header">Műveletek</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for teacher in teachers %}
+                                    <tr>
+                                        <td>{{ teacher.teacher_name }}</td>
+                                        <td>
+                                            {% set teacher_classes = [] %}
+                                            {% for ct in class_teachers.items() %}
+                                                {% if ct[1] == teacher.teacher_name %}
+                                                    {% set _ = teacher_classes.append(ct[0]) %}
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if teacher_classes %}
+                                                {{ teacher_classes|join(', ') }}
+                                            {% else %}
+                                                <span class="text-muted">Nincs hozzárendelt osztály</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="actions-cell">
+                                            <button class="btn btn-sm btn-primary" onclick="showEditTeacherModal('{{ teacher.id }}', '{{ teacher.teacher_name }}')">Szerkesztés</button>
+                                            <button class="btn btn-sm btn-info" onclick="showManageClassesModal('{{ teacher.id }}', '{{ teacher.teacher_name }}')">Osztályok</button>
+                                            <button class="btn btn-sm btn-danger" onclick="showDeleteTeacherModal('{{ teacher.id }}', '{{ teacher.teacher_name }}')">Törlés</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Diákok kezelése -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title">Diákok kezelése</h5>
+                        <button class="btn btn-primary" onclick="showCreateStudentModal()">Új diák</button>
+                    </div>
+                    <div class="card-body">
+                        {% set class_groups = {} %}
+                        {% for student in students %}
+                            {% if student.class_name not in class_groups %}
+                                {% set _ = class_groups.update({student.class_name: []}) %}
+                            {% endif %}
+                            {% set _ = class_groups[student.class_name].append(student) %}
+                        {% endfor %}
+
+                        <div class="accordion" id="studentsAccordion">
+                            {% for class_name, students in class_groups.items()|sort %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{ class_name|replace('.', '') }}">
+                                    <button class="accordion-button collapsed" type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse{{ class_name|replace('.', '') }}" 
+                                            aria-expanded="false" 
+                                            aria-controls="collapse{{ class_name|replace('.', '') }}">
+                                        <div class="d-flex justify-content-between align-items-center w-100">
+                                            <span>{{ class_name }} ({{ students|length }} diák)</span>
+                                            <i class="fas fa-chevron-down ms-2 transition-transform"></i>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ class_name|replace('.', '') }}" 
+                                     class="accordion-collapse collapse" 
+                                     aria-labelledby="heading{{ class_name|replace('.', '') }}" 
+                                     data-bs-parent="#studentsAccordion">
+                                    <div class="accordion-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Diák neve</th>
+                                                        <th class="actions-header">Műveletek</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for student in students|sort(attribute='student_name') %}
+                                                    <tr>
+                                                        <td>{{ student.student_name }}</td>
+                                                        <td class="actions-cell">
+                                                            <button class="btn btn-sm btn-primary" onclick="showEditStudentModal('{{ student.id }}', '{{ student.student_name }}', '{{ student.class_name }}')">Szerkesztés</button>
+                                                            <button class="btn btn-sm btn-danger" onclick="showDeleteStudentModal('{{ student.id }}', '{{ student.student_name }}')">Törlés</button>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('simple_logout') }}" class="btn btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Kijelentkezés
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal ablakok -->
+    <!-- Osztály létrehozás modal -->
+    <div class="modal fade" id="createClassModal" tabindex="-1" aria-labelledby="createClassModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createClassModalLabel">Új osztály létrehozása</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createClassForm">
+                        <div class="mb-3">
+                            <label for="className" class="form-label">Osztály neve</label>
+                            <input type="text" class="form-control" id="className" name="class_name" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" onclick="createClass()">Létrehozás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Osztály törlés modal -->
+    <div class="modal fade" id="deleteClassModal" tabindex="-1" aria-labelledby="deleteClassModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteClassModalLabel">Osztály törlése</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteClassConfirmText">Biztosan törölni szeretnéd az osztályt? Ez a művelet nem vonható vissza.</p>
+                    <input type="hidden" id="deleteClassId" name="class_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-danger" onclick="handleClassDelete()">Törlés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tanár létrehozás modal -->
+    <div class="modal fade" id="createTeacherModal" tabindex="-1" aria-labelledby="createTeacherModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createTeacherModalLabel">Új tanár létrehozása</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createTeacherForm">
+                        <div class="mb-3">
+                            <label for="teacherName" class="form-label">Tanár neve</label>
+                            <input type="text" class="form-control" id="teacherName" name="teacher_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="teacherPassword" class="form-label">Jelszó</label>
+                            <input type="password" class="form-control" id="teacherPassword" name="password" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" onclick="createTeacher()">Létrehozás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tanár szerkesztés modal -->
+    <div class="modal fade" id="editTeacherModal" tabindex="-1" aria-labelledby="editTeacherModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editTeacherModalLabel">Tanár szerkesztése</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editTeacherForm">
+                        <input type="hidden" id="editTeacherId" name="teacher_id">
+                        <div class="mb-3">
+                            <label for="editTeacherName" class="form-label">Tanár neve</label>
+                            <input type="text" class="form-control" id="editTeacherName" name="teacher_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editTeacherPassword" class="form-label">Új jelszó (hagyja üresen, ha nem szeretné módosítani)</label>
+                            <input type="password" class="form-control" id="editTeacherPassword" name="password">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" onclick="updateTeacher()">Mentés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tanár törlés modal -->
+    <div class="modal fade" id="deleteTeacherModal" tabindex="-1" aria-labelledby="deleteTeacherModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteTeacherModalLabel">Tanár törlése</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Biztosan törölni szeretnéd a tanárt? Ez a művelet nem vonható vissza.</p>
+                    <input type="hidden" id="deleteTeacherId" name="teacher_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteTeacher()">Törlés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diák létrehozás modal -->
+    <div class="modal fade" id="createStudentModal" tabindex="-1" aria-labelledby="createStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createStudentModalLabel">Új diák létrehozása</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="createStudentForm">
+                        <div class="mb-3">
+                            <label for="studentName" class="form-label">Diák neve</label>
+                            <input type="text" class="form-control" id="studentName" name="student_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentClass" class="form-label">Osztály</label>
+                            <select class="form-select" id="studentClass" name="class_name" required>
+                                <!-- Osztályok JavaScript-tel lesznek feltöltve -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentPassword" class="form-label">Jelszó</label>
+                            <input type="password" class="form-control" id="studentPassword" name="password" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" onclick="createStudent()">Létrehozás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diák szerkesztés modal -->
+    <div class="modal fade" id="editStudentModal" tabindex="-1" aria-labelledby="editStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStudentModalLabel">Diák szerkesztése</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editStudentForm">
+                        <input type="hidden" id="editStudentId" name="student_id">
+                        <div class="mb-3">
+                            <label for="editStudentName" class="form-label">Diák neve</label>
+                            <input type="text" class="form-control" id="editStudentName" name="student_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStudentClass" class="form-label">Osztály</label>
+                            <select class="form-select" id="editStudentClass" name="class_name" required>
+                                <!-- Osztályok JavaScript-tel lesznek feltöltve -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editStudentPassword" class="form-label">Új jelszó (hagyja üresen, ha nem szeretné módosítani)</label>
+                            <input type="password" class="form-control" id="editStudentPassword" name="password">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" onclick="updateStudent()">Mentés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diák törlés modal -->
+    <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-labelledby="deleteStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteStudentModalLabel">Diák törlése</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Biztosan törölni szeretnéd a diákot? Ez a művelet nem vonható vissza.</p>
+                    <input type="hidden" id="deleteStudentId" name="student_id">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteStudent()">Törlés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Osztályok kezelése modal -->
+    <div class="modal fade" id="manageClassesModal" tabindex="-1" aria-labelledby="manageClassesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="manageClassesModalLabel">Osztályok kezelése</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="manageClassesForm">
+                        <input type="hidden" id="manageClassesTeacherId" name="teacher_id">
+                        <div class="mb-3">
+                            <label class="form-label">Válassz osztályokat:</label>
+                            <div id="classCheckboxes" class="class-checkboxes">
+                                <!-- Osztályok checkboxokkal itt jelennek meg -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" onclick="updateTeacherClasses()">Mentés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% endblock %}
+
+    {% block extra_js %}
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    // Várunk, amíg a dokumentum és minden függőség betöltődik
+    document.addEventListener('DOMContentLoaded', function() {
+        // Bootstrap inicializálása
+        window.bootstrap = bootstrap;
+        
+        // Táblázatok inicializálása
+        const tables = ['classTable', 'teacherTable', 'studentTable'];
+        tables.forEach(tableId => {
+            const table = document.getElementById(tableId);
+            if (table) {
+                // Keresőmezők eseménykezelőinek beállítása
+                const searchInput = document.getElementById(tableId + 'Search');
+                if (searchInput) {
+                    searchInput.addEventListener('input', (e) => {
+                        handleSearch(tableId, e.target.value);
+                    });
+                }
+                
+                // Rendezés eseménykezelőinek beállítása
+                const headers = table.getElementsByTagName('th');
+                Array.from(headers).forEach((header, index) => {
+                    if (header.classList.contains('sortable')) {
+                        header.addEventListener('click', () => {
+                            handleSort(tableId, index);
+                        });
+                    }
+                });
+                
+                // Táblázat frissítése
+                updateTable(tableId);
+            }
+        });
+        
+        // Osztály szűrő eseménykezelő beállítása
+        const studentClassFilter = document.getElementById('studentClassFilter');
+        if (studentClassFilter) {
+            studentClassFilter.addEventListener('change', (e) => {
+                handleClassFilter(e.target.value);
+            });
+        }
+
+        // Accordion inicializálása
+        var accordionButtons = document.querySelectorAll('.accordion-button');
+        accordionButtons.forEach(function(button) {
+            button.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                // Toggle the collapsed class
+                this.classList.toggle('collapsed');
+                
+                // Toggle the aria-expanded attribute
+                var expanded = this.getAttribute('aria-expanded') === 'true';
+                this.setAttribute('aria-expanded', !expanded);
+                
+                // Toggle the collapse element
+                var target = document.querySelector(this.getAttribute('data-bs-target'));
+                if (target) {
+                    if (expanded) {
+                        target.classList.remove('show');
+                    } else {
+                        target.classList.add('show');
+                    }
+                }
+            });
+        });
+    });
+
+    // Osztály törlése
+    function showDeleteClassModal(classId, className) {
+        const modal = document.getElementById('deleteClassModal');
+        document.getElementById('deleteClassId').value = classId;
+        document.getElementById('deleteClassConfirmText').textContent = 
+            `Biztosan törölni szeretnéd a(z) ${className} osztályt? Ez a művelet nem vonható vissza.`;
+        
+        const bsModal = new bootstrap.Modal(modal);
+        bsModal.show();
+    }
+
+    function handleClassDelete() {
+        const classId = document.getElementById('deleteClassId').value;
+        if (!classId) {
+            console.error('Nincs osztály ID megadva!');
+            return;
+        }
+
+        $.ajax({
+            url: '/delete_class',
+            type: 'POST',
+            data: { class_id: classId },
+            success: function(response) {
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteClassModal'));
+                if (modal) {
+                    modal.hide();
+                }
+
+                if (response.warning) {
+                    // Ha van diák az osztályban, új megerősítést kérünk
+                    if (confirm(response.message)) {
+                        $.ajax({
+                            url: '/delete_class',
+                            type: 'POST',
+                            data: { 
+                                class_id: classId,
+                                confirmed: true 
+                            },
+                            success: function(confirmResponse) {
+                                if (confirmResponse.success) {
+                                    window.location.reload();
+                                } else {
+                                    alert(confirmResponse.message || 'Hiba történt a törlés során!');
+                                }
+                            },
+                            error: function(xhr) {
+                                alert('Hiba történt: ' + (xhr.responseJSON?.message || xhr.responseText));
+                            }
+                        });
+                    }
+                } else if (response.success) {
+                    window.location.reload();
+                } else {
+                    alert(response.message || 'Hiba történt a törlés során!');
+                }
+            },
+            error: function(xhr) {
+                alert('Hiba történt: ' + (xhr.responseJSON?.message || xhr.responseText));
+            }
+        });
+    }
+
+    // Tanár törlése
+    function showDeleteTeacherModal(teacherId, teacherName) {
+        document.getElementById('deleteTeacherId').value = teacherId;
+        document.getElementById('deleteTeacherModal').querySelector('.modal-body p').textContent = 
+            `Biztosan törölni szeretnéd a(z) ${teacherName} tanárt? Ez a művelet nem vonható vissza.`;
+        new bootstrap.Modal(document.getElementById('deleteTeacherModal')).show();
+    }
+
+    function deleteTeacher() {
+        const teacherId = document.getElementById('deleteTeacherId').value;
+        const teacherName = document.getElementById('deleteTeacherModal').querySelector('.modal-body p').textContent.split("'")[1];
+        
+        $.ajax({
+            url: '/delete_teacher',
+            type: 'POST',
+            data: { teacher_name: teacherName },
+            success: function(response) {
+                if (response.success) {
+                    window.location.reload();
+                } else {
+                    alert(response.message || 'Hiba történt a tanár törlése közben!');
+                }
+            },
+            error: function(xhr) {
+                alert('Hiba történt: ' + xhr.responseText);
+            }
+        });
+    }
+
+    // Diák törlése
+    function showDeleteStudentModal(studentId, studentName) {
+        document.getElementById('deleteStudentId').value = studentId;
+        document.getElementById('deleteStudentModal').querySelector('.modal-body p').textContent = 
+            `Biztosan törölni szeretnéd a(z) ${studentName} diákot? Ez a művelet nem vonható vissza.`;
+        new bootstrap.Modal(document.getElementById('deleteStudentModal')).show();
+    }
+
+    function deleteStudent() {
+        const studentId = document.getElementById('deleteStudentId').value;
+        const studentName = document.getElementById('deleteStudentModal').querySelector('.modal-body p').textContent.split("'")[1];
+        
+        $.ajax({
+            url: '/delete_student',
+            type: 'POST',
+            data: { student_name: studentName },
+            success: function(response) {
+                if (response.success) {
+                    window.location.reload();
+                } else {
+                    alert(response.message || 'Hiba történt a diák törlése közben!');
+                }
+            },
+            error: function(xhr) {
+                alert('Hiba történt: ' + xhr.responseText);
+            }
+        });
+    }
+
+    // Táblázat kezelés optimalizálása
+    let tableStates = {
+        classTable: {
+            currentPage: 1,
+            pageSize: 10,
+            filter: '',
+            sortColumn: null,
+            sortDirection: 'asc',
+            searchTerm: ''
+        },
+        teacherTable: {
+            currentPage: 1,
+            pageSize: 10,
+            filter: '',
+            sortColumn: null,
+            sortDirection: 'asc',
+            searchTerm: ''
+        },
+        studentTable: {
+            currentPage: 1,
+            pageSize: 10,
+            selectedClass: '',
+            sortColumn: null,
+            sortDirection: 'asc'
+        }
+    };
+
+    // Oldalméretek kezelése
+    function changePageSize(size, tableId) {
+        tableStates[tableId].pageSize = parseInt(size);
+        tableStates[tableId].currentPage = 1;
+        updateTable(tableId);
+    }
+
+    // Táblázat frissítése
+    function updateTable(tableId) {
+        const state = tableStates[tableId];
+        const table = document.getElementById(tableId);
+        const rows = Array.from(table.getElementsByTagName('tr')).slice(1); // Skip header
+        
+        let filteredRows = rows;
+        
+        if (tableId === 'studentTable') {
+            // Diákok táblázata: csak a kiválasztott osztály diákjait mutatjuk
+            filteredRows = rows.filter(row => {
+                if (!state.selectedClass) return false; // Ha nincs osztály kiválasztva, ne mutasson semmit
+                return row.dataset.class === state.selectedClass;
+            });
+        } else {
+            // Többi táblázat: normál szűrés és keresés
+            filteredRows = rows.filter(row => {
+                if (!state.searchTerm && !state.filter) return true;
+                
+                const text = row.textContent.toLowerCase();
+                const searchMatch = !state.searchTerm || text.includes(state.searchTerm.toLowerCase());
+                const filterMatch = !state.filter || row.dataset.status === state.filter;
+                
+                return searchMatch && filterMatch;
+            });
+        }
+        
+        // Rendezés
+        if (state.sortColumn !== null) {
+            filteredRows.sort((a, b) => {
+                const aVal = a.cells[state.sortColumn].textContent;
+                const bVal = b.cells[state.sortColumn].textContent;
+                return state.sortDirection === 'asc' ? 
+                       aVal.localeCompare(bVal) : 
+                       bVal.localeCompare(aVal);
+            });
+        }
+        
+        // Lapozás
+        const startIndex = (state.currentPage - 1) * state.pageSize;
+        const endIndex = startIndex + state.pageSize;
+        const totalPages = Math.ceil(filteredRows.length / state.pageSize);
+        
+        // Sorok megjelenítése
+        rows.forEach(row => row.style.display = 'none');
+        filteredRows.slice(startIndex, endIndex).forEach(row => row.style.display = '');
+        
+        // Lapozó frissítése
+        updatePagination(tableId, totalPages, filteredRows.length);
+    }
+
+    // Lapozó frissítése
+    function updatePagination(tableId, totalPages, totalRows) {
+        const pagination = document.getElementById(tableId + 'Pagination');
+        const info = document.getElementById(tableId + 'PageInfo');
+        
+        if (!pagination || !info) {
+            console.warn(`Pagination elements not found for table ${tableId}`);
+            return;
+        }
+        
+        const state = tableStates[tableId];
+        
+        // Információs szöveg
+        const startRow = totalRows === 0 ? 0 : (state.currentPage - 1) * state.pageSize + 1;
+        const endRow = Math.min(startRow + state.pageSize - 1, totalRows);
+        info.textContent = `Megjelenítve: ${startRow}-${endRow} / ${totalRows}`;
+        
+        // Lapozó gombok
+        pagination.innerHTML = '';
+        
+        if (totalRows > 0) {
+            // Előző gomb
+            addPaginationButton(pagination, '«', state.currentPage > 1, () => {
+                state.currentPage--;
+                updateTable(tableId);
+            });
+            
+            // Oldalszámok
+            for (let i = 1; i <= totalPages; i++) {
+                if (
+                    i === 1 || // Első oldal
+                    i === totalPages || // Utolsó oldal
+                    (i >= state.currentPage - 2 && i <= state.currentPage + 2) // Környező oldalak
+                ) {
+                    addPaginationButton(pagination, i, true, () => {
+                        state.currentPage = i;
+                        updateTable(tableId);
+                    }, i === state.currentPage);
+                } else if (
+                    (i === state.currentPage - 3 && state.currentPage > 4) ||
+                    (i === state.currentPage + 3 && state.currentPage < totalPages - 3)
+                ) {
+                    // Három pont
+                    const dots = document.createElement('li');
+                    dots.className = 'page-item disabled';
+                    dots.innerHTML = '<span class="page-link">...</span>';
+                    pagination.appendChild(dots);
+                }
+            }
+            
+            // Következő gomb
+            addPaginationButton(pagination, '»', state.currentPage < totalPages, () => {
+                state.currentPage++;
+                updateTable(tableId);
+            });
+        }
+    }
+
+    // Lapozó gomb létrehozása
+    function addPaginationButton(container, text, enabled, onClick, isActive = false) {
+        const li = document.createElement('li');
+        li.className = `page-item ${!enabled ? 'disabled' : ''} ${isActive ? 'active' : ''}`;
+        
+        const a = document.createElement('a');
+        a.className = 'page-link';
+        a.href = '#';
+        a.textContent = text;
+        
+        if (enabled) {
+            a.addEventListener('click', (e) => {
+                e.preventDefault();
+                onClick();
+            });
+        }
+        
+        li.appendChild(a);
+        container.appendChild(li);
+    }
+
+    // Keresés eseménykezelő
+    function handleSearch(tableId, value) {
+        const state = tableStates[tableId];
+        state.searchTerm = value;
+        state.currentPage = 1;
+        updateTable(tableId);
+    }
+
+    // Szűrés eseménykezelő
+    function handleFilter(tableId, value) {
+        const state = tableStates[tableId];
+        state.filter = value;
+        state.currentPage = 1;
+        updateTable(tableId);
+    }
+
+    // Osztály szűrés eseménykezelő
+    function handleClassFilter(value) {
+        const state = tableStates['studentTable'];
+        state.selectedClass = value;
+        state.currentPage = 1;
+        updateTable('studentTable');
+    }
+
+    // Rendezés eseménykezelő
+    function handleSort(tableId, columnIndex) {
+        const state = tableStates[tableId];
+        
+        if (state.sortColumn === columnIndex) {
+            state.sortDirection = state.sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            state.sortColumn = columnIndex;
+            state.sortDirection = 'asc';
+        }
+        
+        updateTable(tableId);
+    }
+
+    // Oldal betöltésekor
+    document.addEventListener('DOMContentLoaded', function() {
+        // Táblázatok inicializálása
+        ['classTable', 'teacherTable', 'studentTable'].forEach(tableId => {
+            updateTable(tableId);
+            
+            // Keresőmezők eseménykezelőinek beállítása
+            const searchInput = document.getElementById(tableId + 'Search');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    handleSearch(tableId, e.target.value);
+                });
+            }
+            
+            // Rendezés eseménykezelőinek beállítása
+            const table = document.getElementById(tableId);
+            if (table) {
+                const headers = table.getElementsByTagName('th');
+                Array.from(headers).forEach((header, index) => {
+                    if (header.classList.contains('sortable')) {
+                        header.addEventListener('click', () => {
+                            handleSort(tableId, index);
+                        });
+                    }
+                });
+            }
+        });
+        
+        // Osztály szűrő eseménykezelő beállítása
+        const studentClassFilter = document.getElementById('studentClassFilter');
+        if (studentClassFilter) {
+            studentClassFilter.addEventListener('change', (e) => {
+                handleClassFilter(e.target.value);
+            });
+        }
+    });
+
+    $(document).ready(function() {
+        // Osztály létrehozása
+        $('#createClassBtn').on('click', function() {
+            const className = $('#class_name').val();
+            if (!className) {
+                alert('Az osztály neve kötelező!');
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '/create_class',
+                data: { class_name: className },
+                success: function(response) {
+                    if (response.success) {
+                        // Modal bezárása
+                        $('#createClassModal').modal('hide');
+                        // Form resetelése
+                        $('#createClassForm')[0].reset();
+                        
+                        // Új osztály hozzáadása a táblázathoz
+                        var newRow = `
+                            <tr data-status="active">
+                                <td>${className}</td>
+                                <td class="actions-cell">
+                                    <button class="btn btn-sm btn-primary" onclick="showEditClassModal('${className}')">Szerkesztés</button>
+                                    <button class="btn btn-sm btn-danger" onclick="showDeleteClassModal('${className}')">Törlés</button>
+                                </td>
+                            </tr>`;
+                        $('#classTable tbody').append(newRow);
+                        
+                        // Frissítjük a statisztikákat
+                        var statNumber = $('.stat-number').filter(function() {
+                            return $(this).next('.stat-label').text() === 'Osztályok';
+                        });
+                        var currentCount = parseInt(statNumber.text());
+                        statNumber.text(currentCount + 1);
+                        
+                        // Sikeres üzenet megjelenítése
+                        alert(response.message);
+                        // Oldal újratöltése - Ez biztosítja, hogy minden jól működjön
+                        location.reload();
+                    } else {
+                        // Hiba esetén üzenet megjelenítése
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Hiba történt:', xhr);
+                    alert('Hiba történt: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+                }
+            });
+        });
+
+        // Osztály szerkesztés mentése
+        $('#saveClassEditBtn').on('click', function() {
+            console.log('Osztály mentése gomb megnyomva');
+            const classId = $('#editClassId').val();
+            const className = $('#editClassName').val();
+            
+            if (!classId || !className) {
+                alert('Az osztály neve kötelező!');
+                return;
+            }
+            
+            // Adatok készítése
+            const formData = new FormData();
+            formData.append('class_id', classId);
+            formData.append('class_name', className);
+            
+            console.log('Küldés előtt:', {
+                class_id: classId,
+                class_name: className
+            });
+            
+            $.ajax({
+                url: '/edit_class_post',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    console.log('Válasz:', response);
+                    if (response.success) {
+                        $('#editClassModal').modal('hide');
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert(response.message || 'Hiba történt a mentés közben!');
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Hiba történt:', xhr);
+                    alert('Hiba történt: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+                }
+            });
+        });
+    });
+
+    // Modal ablakok kezelése
+    function showModal(modalId) {
+        const modal = new bootstrap.Modal(document.getElementById(modalId));
+        modal.show();
+    }
+
+    function hideModal(modalId) {
+        const modal = bootstrap.Modal.getInstance(document.getElementById(modalId));
+        if (modal) {
+            modal.hide();
+        }
+    }
+
+    // Osztály műveletek
+    function showCreateClassModal() {
+        document.getElementById('createClassForm').reset();
+        showModal('createClassModal');
+    }
+
+    function showEditClassModal(classId, className) {
+        document.getElementById('editClassId').value = classId;
+        document.getElementById('editClassOriginalName').value = className;
+        document.getElementById('editClassName').value = className;
+        showModal('editClassModal');
+    }
+
+    function showDeleteClassModal(classId) {
+        document.getElementById('deleteClassId').value = classId;
+        showModal('deleteClassModal');
+    }
+
+    function createClass() {
+        const formData = new FormData(document.getElementById('createClassForm'));
+        $.ajax({
+            url: '/create_class',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    hideModal('createClassModal');
+                    showNotification('Sikeres létrehozás', response.message, 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showNotification('Hiba', response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt:', xhr);
+                showNotification('Hiba', xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText, 'error');
+            }
+        });
+    }
+
+    function updateClass() {
+        const formData = new FormData(document.getElementById('editClassForm'));
+        const classId = formData.get('class_id');
+        const originalName = formData.get('original_class_name');
+        const newName = formData.get('class_name');
+
+        if (!classId || !originalName || !newName) {
+            showNotification('Hiba', 'Hiányzó adatok!', 'error');
+            return;
+        }
+
+        if (originalName === newName) {
+            showNotification('Figyelmeztetés', 'A név nem változott!', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '/edit_class',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    hideModal('editClassModal');
+                    showNotification('Sikeres módosítás', response.message, 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showNotification('Hiba', response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt:', xhr);
+                showNotification('Hiba', xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText, 'error');
+            }
+        });
+    }
+
+    // Tanár műveletek
+    function showCreateTeacherModal() {
+        document.getElementById('createTeacherForm').reset();
+        showModal('createTeacherModal');
+    }
+
+    function showEditTeacherModal(teacherId, teacherName) {
+        document.getElementById('editTeacherId').value = teacherId;
+        document.getElementById('editTeacherName').value = teacherName;
+        document.getElementById('editTeacherPassword').value = '';
+        showModal('editTeacherModal');
+    }
+
+    function showDeleteTeacherModal(teacherId) {
+        document.getElementById('deleteTeacherId').value = teacherId;
+        showModal('deleteTeacherModal');
+    }
+
+    function createTeacher() {
+        const formData = new FormData(document.getElementById('createTeacherForm'));
+        $.ajax({
+            url: '/create_teacher',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    hideModal('createTeacherModal');
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert('Hiba történt: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt:', xhr);
+                alert('Hiba történt: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+            }
+        });
+    }
+
+    function updateTeacher() {
+        const formData = new FormData(document.getElementById('editTeacherForm'));
+        $.ajax({
+            url: '/edit_teacher',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    hideModal('editTeacherModal');
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert('Hiba történt: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt:', xhr);
+                alert('Hiba történt: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+            }
+        });
+    }
+
+    function deleteTeacher() {
+        const teacherId = document.getElementById('deleteTeacherId').value;
+        $.ajax({
+            url: '/delete_teacher',
+            method: 'POST',
+            data: { teacher_id: teacherId },
+            success: function(response) {
+                if (response.success) {
+                    hideModal('deleteTeacherModal');
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert('Hiba történt: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt:', xhr);
+                alert('Hiba történt: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+            }
+        });
+    }
+
+    // Diák műveletek
+    function showCreateStudentModal() {
+        document.getElementById('createStudentForm').reset();
+        loadClassesForSelect('studentClass');
+        showModal('createStudentModal');
+    }
+
+    function showEditStudentModal(studentId, studentName, className) {
+        document.getElementById('editStudentId').value = studentId;
+        document.getElementById('editStudentName').value = studentName;
+        loadClassesForSelect('editStudentClass', className);
+        document.getElementById('editStudentPassword').value = '';
+        showModal('editStudentModal');
+    }
+
+    function showDeleteStudentModal(studentId) {
+        document.getElementById('deleteStudentId').value = studentId;
+        showModal('deleteStudentModal');
+    }
+
+    function loadClassesForSelect(selectId, selectedClass = null) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '<option value="">Válasszon osztályt...</option>';
+        
+        $.ajax({
+            url: '/get_classes',
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    response.classes.forEach(function(classItem) {
+                        const option = document.createElement('option');
+                        option.value = classItem.class_name;
+                        option.textContent = classItem.class_name;
+                        if (selectedClass && classItem.class_name === selectedClass) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    });
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt az osztályok betöltésekor:', xhr);
+                alert('Hiba történt az osztályok betöltésekor');
+            }
+        });
+    }
+
+    function createStudent() {
+        const formData = new FormData(document.getElementById('createStudentForm'));
+        $.ajax({
+            url: '/create_student',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    hideModal('createStudentModal');
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert('Hiba történt: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt:', xhr);
+                alert('Hiba történt: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+            }
+        });
+    }
+
+    function updateStudent() {
+        const formData = new FormData(document.getElementById('editStudentForm'));
+        $.ajax({
+            url: '/edit_student',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    hideModal('editStudentModal');
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert('Hiba történt: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt:', xhr);
+                alert('Hiba történt: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+            }
+        });
+    }
+
+    function deleteStudent() {
+        const studentId = document.getElementById('deleteStudentId').value;
+        $.ajax({
+            url: '/delete_student',
+            method: 'POST',
+            data: { student_id: studentId },
+            success: function(response) {
+                if (response.success) {
+                    hideModal('deleteStudentModal');
+                    alert(response.message);
+                    location.reload();
+                } else {
+                    alert('Hiba történt: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                console.error('Hiba történt:', xhr);
+                alert('Hiba történt: ' + (xhr.responseJSON ? xhr.responseJSON.message : xhr.responseText));
+            }
+        });
+    }
+
+    // Toast notification function
+    function showNotification(title, message, type = 'success') {
+        const toast = document.getElementById('notificationToast');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        // Set toast style based on type
+        toast.className = 'toast';
+        if (type === 'success') {
+            toast.classList.add('bg-success', 'text-white');
+        } else if (type === 'error') {
+            toast.classList.add('bg-danger', 'text-white');
+        } else if (type === 'warning') {
+            toast.classList.add('bg-warning');
+        }
+        
+        // Set content
+        toastTitle.textContent = title;
+        toastMessage.textContent = message;
+        
+        // Show toast
+        const bsToast = new bootstrap.Toast(toast, {
+            animation: true,
+            autohide: true,
+            delay: 3000
+        });
+        bsToast.show();
+    }
+
+    function showManageClassesModal(teacherId, teacherName) {
+        document.getElementById('manageClassesTeacherId').value = teacherId;
+        document.getElementById('manageClassesModalLabel').textContent = `${teacherName} osztályainak kezelése`;
+        
+        // Osztályok lekérése
+        $.ajax({
+            url: '/get_teacher_classes',
+            method: 'GET',
+            data: { teacher_id: teacherId },
+            success: function(response) {
+                if (response.success) {
+                    const classCheckboxes = document.getElementById('classCheckboxes');
+                    classCheckboxes.innerHTML = '';
+                    
+                    response.available_classes.forEach(function(classInfo) {
+                        const isChecked = response.assigned_classes.includes(classInfo.class_name);
+                        const div = document.createElement('div');
+                        div.className = 'class-checkbox-item';
+                        div.innerHTML = `
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" 
+                                       name="classes[]" 
+                                       value="${classInfo.class_name}" 
+                                       id="class_${classInfo.id}"
+                                       ${isChecked ? 'checked' : ''}>
+                                <label class="form-check-label" for="class_${classInfo.id}">
+                                    ${classInfo.class_name}
+                                </label>
+                            </div>
+                        `;
+                        classCheckboxes.appendChild(div);
+                    });
+                    
+                    new bootstrap.Modal(document.getElementById('manageClassesModal')).show();
+                } else {
+                    alert('Hiba történt az osztályok lekérése közben: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('Hiba történt: ' + (xhr.responseJSON?.message || xhr.responseText));
+            }
+        });
+    }
+
+    function updateTeacherClasses() {
+        const form = document.getElementById('manageClassesForm');
+        const formData = new FormData(form);
+        
+        $.ajax({
+            url: '/update_teacher_classes',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    hideModal('manageClassesModal');
+                    showNotification('Sikeres módosítás', response.message, 'success');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    showNotification('Hiba', response.message, 'error');
+                }
+            },
+            error: function(xhr) {
+                showNotification('Hiba', xhr.responseJSON?.message || xhr.responseText, 'error');
+            }
+        });
+    }
+    </script>
+    {% endblock %} 

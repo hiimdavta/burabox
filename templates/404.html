@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-page">
+                <h1 class="display-1 text-primary mb-4">404</h1>
+                <h2 class="h3 mb-4">Az oldal nem található</h2>
+                <p class="lead mb-4">Sajnáljuk, de a keresett oldal nem található vagy el lett távolítva.</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Vissza a főoldalra
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.error-page {
+    padding: 3rem 1rem;
+    background-color: var(--gray-100);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--box-shadow);
+}
+
+.error-page h1 {
+    font-size: 6rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+    .error-page h1 {
+        font-size: 4rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .error-page h1 {
+        font-size: 3rem;
+    }
+}
+</style>
+{% endblock %} 

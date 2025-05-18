@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Új tanár létrehozása{% endblock %}
+
+{% block meta_description %}Új tanár létrehozása a BuraBox fájlkezelő rendszerben{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>{{ title }}</h2>
+    <form id="addTeacher" method="POST" action="{{ url_for('add_teacher') }}">
+        <div class="form-group">
+            <label for="teacher_name">Tanár neve:</label>
+            <input type="text" class="form-control" id="teacher_name" name="teacher_name" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Jelszó:</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label>Osztályok:</label>
+            {% for class_name in classes %}
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" name="classes" value="{{ class_name }}" id="class_{{ class_name }}">
+                <label class="form-check-label" for="class_{{ class_name }}">{{ class_name }}</label>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Létrehozás</button>
+    </form>
+</div>
+
+<script>
+$(document).ready(function() {
+    $('#addTeacher').on('submit', function(e) {
+        e.preventDefault();
+        $.ajax({
+            type: 'POST',
+            url: $(this).attr('action'),
+            data: $(this).serialize(),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    window.location.reload();
+                }
+            },
+            error: function(xhr) {
+                alert('Hiba történt: ' + xhr.responseText);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

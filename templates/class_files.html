@@ -1,0 +1,674 @@
+{% extends "base.html" %}
+
+{% block title %}{{ class_name }} - Fájlok{% endblock %}
+
+{% block meta_description %}{{ class_name }} osztály fájljai a MMSZ Tiszaburai Általános Iskola fájlkezelő rendszerében{% endblock %}
+
+{% block extra_css %}
+<style>
+    .class-files-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .files-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    
+    .files-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    
+    .files-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .file-card {
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        overflow: hidden;
+        transition: transform var(--transition-duration);
+    }
+    
+    .file-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .file-preview {
+        height: 200px;
+        background-color: var(--bg-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+    
+    .file-icon {
+        width: 64px;
+        height: 64px;
+        color: var(--text-muted);
+    }
+    
+    .file-info {
+        padding: 1rem;
+    }
+    
+    .file-name {
+        margin: 0 0 0.5rem;
+        color: var(--text-color);
+        font-size: 1.1rem;
+        word-break: break-word;
+    }
+    
+    .file-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    
+    .file-size {
+        white-space: nowrap;
+    }
+    
+    .file-date {
+        white-space: nowrap;
+    }
+    
+    .file-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .file-action {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        border: none;
+        border-radius: var(--border-radius);
+        background-color: var(--bg-light);
+        color: var(--text-color);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background-color var(--transition-duration);
+    }
+    
+    .file-action:hover {
+        background-color: var(--border-color);
+    }
+    
+    .file-action.download {
+        color: var(--primary-color);
+    }
+    
+    .file-action.delete {
+        color: var(--danger-color);
+    }
+    
+    .upload-form {
+        background-color: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--box-shadow);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .upload-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .upload-icon {
+        width: 2rem;
+        height: 2rem;
+        color: var(--primary-color);
+    }
+    
+    .upload-title {
+        margin: 0;
+        color: var(--text-color);
+        font-size: 1.2rem;
+    }
+    
+    .upload-zone {
+        border: 2px dashed var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 2rem;
+        text-align: center;
+        color: var(--text-muted);
+        transition: border-color var(--transition-duration);
+    }
+    
+    .upload-zone.dragover {
+        border-color: var(--primary-color);
+        background-color: var(--bg-light);
+    }
+    
+    .upload-zone input[type="file"] {
+        display: none;
+    }
+    
+    .upload-zone-text {
+        margin-bottom: 1rem;
+    }
+    
+    .upload-zone-text strong {
+        color: var(--text-color);
+    }
+    
+    .upload-progress {
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .progress-bar {
+        height: 0.5rem;
+        background-color: var(--bg-light);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+    
+    .progress-bar-fill {
+        height: 100%;
+        background-color: var(--primary-color);
+        width: 0;
+        transition: width 0.3s ease;
+    }
+    
+    .progress-text {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-muted);
+    }
+    
+    .empty-state-icon {
+        width: 4rem;
+        height: 4rem;
+        margin-bottom: 1rem;
+        color: var(--border-color);
+    }
+    
+    .empty-state-text {
+        margin: 0 0 1.5rem;
+        font-size: 1.2rem;
+    }
+    
+    .files-controls {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .search-box {
+        flex: 1;
+        min-width: 200px;
+    }
+    
+    .search-box input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+    }
+    
+    .sort-controls {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .sort-controls select {
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        background-color: white;
+    }
+    
+    .sort-direction {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: color var(--transition-duration);
+    }
+    
+    .sort-direction:hover {
+        color: var(--primary-color);
+    }
+    
+    .sort-direction.active {
+        color: var(--primary-color);
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 2rem;
+        color: var(--text-muted);
+    }
+    
+    @media (max-width: 768px) {
+        .files-header {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+        
+        .files-actions {
+            flex-direction: column;
+        }
+        
+        .files-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .file-meta {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+        
+        .files-controls {
+            flex-direction: column;
+        }
+        
+        .search-box {
+            width: 100%;
+        }
+        
+        .sort-controls {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="class-files-container">
+    <div class="files-header">
+        <h1>{{ class_name }} - Fájlok</h1>
+        <div class="files-actions">
+            <a href="{{ url_for('teacher_dashboard') }}" class="btn btn-primary">
+                Vissza a vezérlőpulthoz
+            </a>
+        </div>
+    </div>
+    
+    <div class="files-controls">
+        <div class="search-box">
+            <input type="text" id="file-search" placeholder="Fájlok keresése..." 
+                   aria-label="Fájlok keresése">
+        </div>
+        <div class="sort-controls">
+            <select id="sort-by" aria-label="Rendezési szempont">
+                <option value="name">Név szerint</option>
+                <option value="size">Méret szerint</option>
+                <option value="date">Dátum szerint</option>
+            </select>
+            <button type="button" class="sort-direction" id="sort-direction" 
+                    aria-label="Rendezési irány" title="Rendezési irány váltása">
+                ↑
+            </button>
+        </div>
+    </div>
+    
+    <form method="POST" action="{{ url_for('upload_file', class_name=class_name) }}" enctype="multipart/form-data" id="upload-form">
+        {{ form.csrf_token }}
+        <div class="upload-header">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <h2 class="upload-title">Fájlok feltöltése</h2>
+        </div>
+        
+        <div class="upload-zone" id="upload-zone">
+            <input type="file" name="files[]" multiple id="file-input">
+            <div class="upload-zone-text">
+                <strong>Húzza ide a fájlokat</strong> vagy <button type="button" class="btn btn-primary" onclick="document.getElementById('file-input').click()">tallózzon</button>
+            </div>
+            <p>Maximum 10 fájl, egyenként legfeljebb 10 MB</p>
+        </div>
+        
+        <div class="upload-progress" id="upload-progress">
+            <div class="progress-bar">
+                <div class="progress-bar-fill" id="progress-bar-fill"></div>
+            </div>
+            <div class="progress-text" id="progress-text">0%</div>
+        </div>
+    </form>
+    
+    {% if files %}
+    <div class="files-grid">
+        {% for file in files %}
+        <div class="file-card">
+            <div class="file-preview">
+                {% if file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif')) %}
+                    <img src="{{ url_for('static', filename='uploads/' + class_name + '/' + file.name) }}" 
+                         alt="{{ file.name }}" class="file-icon">
+                {% elif file.name.lower().endswith(('.doc', '.docx')) %}
+                    <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                {% elif file.name.lower().endswith(('.xls', '.xlsx')) %}
+                    <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="12" y1="18" x2="12" y2="12"></line>
+                        <line x1="8" y1="15" x2="16" y2="15"></line>
+                    </svg>
+                {% elif file.name.lower().endswith(('.ppt', '.pptx')) %}
+                    <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="8" y1="13" x2="16" y2="13"></line>
+                        <line x1="8" y1="17" x2="16" y2="17"></line>
+                        <line x1="10" y1="9" x2="14" y2="9"></line>
+                    </svg>
+                {% elif file.name.lower().endswith(('.pdf')) %}
+                    <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <line x1="10" y1="9" x2="8" y2="9"></line>
+                    </svg>
+                {% else %}
+                    <svg class="file-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                    </svg>
+                {% endif %}
+            </div>
+            
+            <div class="file-info">
+                <h3 class="file-name">{{ file.name }}</h3>
+                <div class="file-meta">
+                    <span class="file-size">{{ (file.size / 1024 / 1024)|round(1) }} MB</span>
+                    <span class="file-date">{{ file.date.strftime('%Y.%m.%d %H:%M') }}</span>
+                </div>
+                
+                <div class="file-actions">
+                    <a href="{{ url_for('download_file', class_name=class_name, filename=file.name) }}" 
+                       class="file-action download" title="Letöltés">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Letöltés
+                    </a>
+                    <button type="button" class="file-action delete" 
+                            onclick="deleteFile('{{ class_name }}', '{{ file.name }}')" 
+                            title="Törlés">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                        Törlés
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        <h3 class="empty-state-text">Még nincsenek fájlok</h3>
+        <p>Töltse fel az első fájlt az osztályhoz!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // File upload handling
+    const uploadZone = document.getElementById('upload-zone');
+    const fileInput = document.getElementById('file-input');
+    const uploadForm = document.getElementById('upload-form');
+    const uploadProgress = document.getElementById('upload-progress');
+    const progressBarFill = document.getElementById('progress-bar-fill');
+    const progressText = document.getElementById('progress-text');
+    
+    // Drag and drop events
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+    
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        fileInput.files = e.dataTransfer.files;
+        handleFiles(e.dataTransfer.files);
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+    
+    function handleFiles(files) {
+        if (files.length === 0) return;
+        
+        // Validate file count
+        if (files.length > 10) {
+            alert('Maximum 10 fájl tölthető fel egyszerre!');
+            return;
+        }
+        
+        // Validate file sizes
+        for (const file of files) {
+            if (file.size > 10 * 1024 * 1024) { // 10 MB
+                alert(`A ${file.name} fájl mérete meghaladja a 10 MB-ot!`);
+                return;
+            }
+        }
+        
+        // Show progress bar
+        uploadProgress.style.display = 'block';
+        
+        // Create FormData
+        const formData = new FormData(uploadForm);
+        
+        // Get CSRF token
+        const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+        
+        // Upload files
+        fetch(uploadForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.message || 'Hiba történt a fájlok feltöltése közben!');
+                uploadProgress.style.display = 'none';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Hiba történt a fájlok feltöltése közben!');
+            uploadProgress.style.display = 'none';
+        });
+        
+        // Simulate progress (since we can't get real progress with fetch)
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 5;
+            if (progress > 90) {
+                clearInterval(interval);
+            } else {
+                updateProgress(progress);
+            }
+        }, 200);
+    }
+    
+    function updateProgress(percent) {
+        progressBarFill.style.width = `${percent}%`;
+        progressText.textContent = `${percent}%`;
+    }
+    
+    // File deletion
+    function deleteFile(class_name, filename) {
+        if (confirm(`Biztosan törölni szeretnéd a ${filename} fájlt?`)) {
+            const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+            fetch("{{ url_for('delete_files') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `class_name=${encodeURIComponent(class_name)}&files[]=${encodeURIComponent(filename)}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Hiba történt a fájl törlése közben!');
+            });
+        }
+    }
+    
+    // File sorting and filtering
+    const fileSearch = document.getElementById('file-search');
+    const sortBy = document.getElementById('sort-by');
+    const sortDirection = document.getElementById('sort-direction');
+    const filesGrid = document.querySelector('.files-grid');
+    
+    let currentSort = {
+        by: 'name',
+        direction: 'asc'
+    };
+    
+    function sortFiles(files, sortBy, direction) {
+        return [...files].sort((a, b) => {
+            let valueA, valueB;
+            
+            switch(sortBy) {
+                case 'name':
+                    valueA = a.querySelector('.file-name').textContent.toLowerCase();
+                    valueB = b.querySelector('.file-name').textContent.toLowerCase();
+                    break;
+                case 'size':
+                    valueA = parseFloat(a.querySelector('.file-size').textContent);
+                    valueB = parseFloat(b.querySelector('.file-size').textContent);
+                    break;
+                case 'date':
+                    valueA = new Date(a.querySelector('.file-date').textContent);
+                    valueB = new Date(b.querySelector('.file-date').textContent);
+                    break;
+                default:
+                    return 0;
+            }
+            
+            if (direction === 'asc') {
+                return valueA > valueB ? 1 : -1;
+            } else {
+                return valueA < valueB ? 1 : -1;
+            }
+        });
+    }
+    
+    function filterFiles(files, searchTerm) {
+        const term = searchTerm.toLowerCase();
+        return files.filter(file => {
+            const fileName = file.querySelector('.file-name').textContent.toLowerCase();
+            return fileName.includes(term);
+        });
+    }
+    
+    function updateFileList() {
+        const files = Array.from(filesGrid.querySelectorAll('.file-card'));
+        const searchTerm = fileSearch.value;
+        const filteredFiles = filterFiles(files, searchTerm);
+        const sortedFiles = sortFiles(filteredFiles, currentSort.by, currentSort.direction);
+        
+        // Clear and reappend files
+        filesGrid.innerHTML = '';
+        if (sortedFiles.length === 0) {
+            filesGrid.innerHTML = `
+                <div class="no-results">
+                    <p>Nincs találat a keresésre: "${searchTerm}"</p>
+                </div>
+            `;
+        } else {
+            sortedFiles.forEach(file => filesGrid.appendChild(file));
+        }
+    }
+    
+    // Event listeners
+    fileSearch.addEventListener('input', updateFileList);
+    
+    sortBy.addEventListener('change', (e) => {
+        currentSort.by = e.target.value;
+        updateFileList();
+    });
+    
+    sortDirection.addEventListener('click', () => {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        sortDirection.textContent = currentSort.direction === 'asc' ? '↑' : '↓';
+        sortDirection.classList.toggle('active');
+        updateFileList();
+    });
+    
+    // Initialize
+    updateFileList();
+</script>
+{% endblock %} 
