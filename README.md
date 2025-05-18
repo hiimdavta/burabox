@@ -1,7 +1,7 @@
-# MMSZ Tiszaburai Általános Iskola Fájlkezelő Rendszer
+# Iskolai Fájlkezelő Rendszer
 
 ## Leírás
-Ez a webalkalmazás a MMSZ Tiszaburai Általános Iskola fájlkezelő rendszere. Lehetővé teszi a tanárok és diákok számára a fájlok feltöltését, kezelését és megosztását osztályonként. A rendszer biztonságos, felhasználóbarát és reszponzív felülettel rendelkezik.
+Ez a webalkalmazás egy általános iskolai fájlkezelő rendszer. Lehetővé teszi a tanárok és diákok számára a fájlok feltöltését, kezelését és megosztását osztályonként. A rendszer biztonságos, felhasználóbarát és reszponzív felülettel rendelkezik.
 
 ## Főbb funkciók
 - 🔐 Egységes bejelentkezési rendszer tanárok és diákok számára
@@ -41,8 +41,8 @@ Ez a webalkalmazás a MMSZ Tiszaburai Általános Iskola fájlkezelő rendszere.
 ### Telepítési lépések
 1. Klónozd a repository-t:
 ```bash
-git clone https://github.com/yourusername/school-file-manager.git
-cd school-file-manager
+git clone https://github.com/hiimdavta/teszt-szerver.git
+cd teszt-szerver
 ```
 
 2. Hozz létre és aktiválj egy virtuális környezetet:
