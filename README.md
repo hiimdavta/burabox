@@ -54,15 +54,41 @@ venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
-4. Futtasd az adatbázis migrációt:
+4. Állítsd be a környezeti változókat:
+```bash
+# Másold le a .env.example fájlt .env néven
+cp .env.example .env
+
+# Módosítsd a .env fájlt a saját beállításaiddal
+# Fontos: változtasd meg az admin jelszót és a SECRET_KEY értékét!
+```
+
+5. Futtasd az adatbázis migrációt:
 ```bash
 python migrations.py
 ```
 
-5. Indítsd el a szervert:
+6. Indítsd el a szervert:
 ```bash
 python app.py
 ```
+
+## Környezeti változók
+A rendszer a következő környezeti változókat használja (`.env` fájlban):
+
+### Kötelező beállítások
+- `ADMIN_USERNAME`: Admin felhasználónév (alapértelmezett: 'admin')
+- `ADMIN_PASSWORD`: Admin jelszó (kötelező megváltoztatni!)
+- `SECRET_KEY`: Flask alkalmazás titkos kulcs (kötelező megváltoztatni!)
+
+### Opcionális beállítások
+- `FLASK_ENV`: Környezet típusa ('development' vagy 'production')
+- `DATABASE_URL`: Adatbázis kapcsolati URL (alapértelmezett: SQLite)
+- `MAX_CONTENT_LENGTH`: Maximális fájlméret (alapértelmezett: 15MB)
+- `SESSION_COOKIE_SECURE`: Biztonságos cookie-k (alapértelmezett: True)
+- `PERMANENT_SESSION_LIFETIME`: Session élettartam (alapértelmezett: 24 óra)
+
+További beállítások és részletek: lásd a `.env.example` fájlt.
 
 ## Használat
 1. Nyisd meg a böngészőben: `http://localhost:5051`
@@ -89,6 +115,8 @@ python app.py
 - Ha a statikus fájlok nem töltődnek be, ellenőrizd a Flask konfigurációt
 - Ha a feltöltés nem működik, ellenőrizd a fájl jogosultságokat és a méretkorlátokat
 - Ha az adatbázis kapcsolat nem működik, ellenőrizd a környezeti változókat
+- Ha a bejelentkezés nem működik, ellenőrizd a `.env` fájl beállításait
+- Ha a SECRET_KEY nincs beállítva, generálj egy újat: `python -c 'import secrets; print(secrets.token_hex(32))'`
 
 ## Licenc
 Ez a projekt az MIT licenc alatt áll. Lásd a LICENSE fájlt részletekért.
