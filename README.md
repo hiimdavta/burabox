@@ -196,3 +196,157 @@ Kérdések, javaslatok: [email protected]
 
 ## Köszönet
 Köszönjük minden közreműködőnek és tesztelőnek a segítségüket a projekt fejlesztésében!
+
+## Központi telepítés
+A rendszer központi szerveren való telepítéséhez kövesd az alábbi lépéseket:
+
+1. Szerver előkészítése:
+```bash
+# Rendszerfrissítés
+sudo apt update && sudo apt upgrade  # Debian/Ubuntu
+sudo yum update  # CentOS/RHEL
+
+# Szükséges csomagok telepítése
+sudo apt install python3.11 python3.11-venv nginx supervisor  # Debian/Ubuntu
+sudo yum install python3.11 nginx supervisor  # CentOS/RHEL
+```
+
+2. Alkalmazás telepítése:
+```bash
+# Alkalmazás klónozása
+git clone https://github.com/hiimdavta/burabox_v1.0.0.git /opt/burabox
+cd /opt/burabox
+
+# Virtuális környezet létrehozása
+python3.11 -m venv venv
+source venv/bin/activate
+
+# Függőségek telepítése
+pip install -r requirements.txt
+pip install gunicorn  # WSGI szerver
+```
+
+3. Környezeti változók beállítása:
+```bash
+# Biztonságos értékek generálása
+python -c 'import secrets; print(secrets.token_hex(32))'  # SECRET_KEY
+python -c 'import secrets; print(secrets.token_urlsafe(16))'  # Admin jelszó
+
+# .env fájl létrehozása
+cp .env.example .env
+# Módosítsd a .env fájlt a generált értékekkel
+```
+
+4. Nginx konfiguráció:
+```nginx
+# /etc/nginx/sites-available/burabox
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:5051;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /static {
+        alias /opt/burabox/static;
+    }
+}
+```
+
+5. Supervisor konfiguráció:
+```ini
+# /etc/supervisor/conf.d/burabox.conf
+[program:burabox]
+directory=/opt/burabox
+command=/opt/burabox/venv/bin/gunicorn -w 4 -b 127.0.0.1:5051 app:app
+user=www-data
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/burabox.err.log
+stdout_logfile=/var/log/burabox.out.log
+```
+
+6. SSL/TLS beállítása (Let's Encrypt):
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d your-domain.com
+```
+
+## Biztonsági ellenőrzőlista
+A telepítés előtt ellenőrizd a következőket:
+
+### Környezeti változók
+- [ ] `SECRET_KEY` be van állítva és biztonságos
+- [ ] `ADMIN_PASSWORD` megváltoztatva az alapértelmezett értékről
+- [ ] `FLASK_ENV=production` be van állítva
+- [ ] `SESSION_COOKIE_SECURE=True` be van állítva
+
+### Rendszer beállítások
+- [ ] A `uploads` mappa jogosultságai korrekt beállítva
+- [ ] Az adatbázis fájl jogosultságai korrekt beállítva
+- [ ] A log fájlok jogosultságai korrekt beállítva
+- [ ] SSL/TLS tanúsítvány telepítve és érvényes
+
+### Alkalmazás beállítások
+- [ ] Rate limiting be van állítva
+- [ ] Fájlméret limit be van állítva
+- [ ] Tiltott fájltípusok listája frissítve
+- [ ] Session timeout be van állítva
+
+## Verziókövetés
+A projekt verzióit a [Semantic Versioning](https://semver.org/) követi (MAJOR.MINOR.PATCH):
+
+### v1.0.0 (2024-03-XX)
+- 🎉 Első stabil verzió
+- 🔐 Környezeti változók bevezetése
+- 🛡️ Biztonsági fejlesztések
+- 📝 Dokumentáció bővítése
+
+### v0.9.0 (2024-03-XX)
+- ⚠️ Béta verzió
+- 🔐 Alapvető biztonsági funkciók
+- 📁 Fájlkezelés implementálása
+- 👥 Felhasználói szerepkörök
+
+## Fejlesztői útmutató
+
+### Kód stílus
+A projekt a PEP 8 kódolási stílust követi. A kód formázásához használd a `black` formázót:
+
+```bash
+# Black telepítése
+pip install black
+
+# Kód formázása
+black .
+```
+
+### Commit üzenetek
+A commit üzenetek követik a [Conventional Commits](https://www.conventionalcommits.org/) formátumot:
+
+- `feat:` új funkció
+- `fix:` hiba javítása
+- `docs:` dokumentáció változtatás
+- `style:` kód stílus változtatás
+- `refactor:` kód refaktorálás
+- `test:` tesztek hozzáadása/módosítása
+- `chore:` build folyamat vagy segédeszközök változtatása
+
+Példa:
+```bash
+git commit -m "feat: add environment variables support"
+git commit -m "fix: correct file upload size limit"
+```
+
+### Tesztelés
+A tesztek futtatása:
+```bash
+# Unit tesztek
+python -m pytest tests/
+
+# Kód lefedettség ellenőrzése
+python -m pytest --cov=app tests/
+```
