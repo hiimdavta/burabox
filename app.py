@@ -29,6 +29,7 @@ import zipfile
 from io import BytesIO
 import shutil
 import hashlib
+from dotenv import load_dotenv
 
 # Naplózás beállítása
 logging.basicConfig(
@@ -967,16 +968,18 @@ def simple_admin_login():
         app.logger.debug(f"Login attempt with username: {username}")
         
         # Egyszerű admin bejelentkezés
-        if username == 'admin' and password == 'admin123':
+        admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+        admin_password = os.environ.get('ADMIN_PASSWORD')
+        if username == admin_username and password == admin_password:
             # Sikeres bejelentkezés - beállítjuk a session változót
             session['admin_logged_in'] = True
             session['student_name'] = username
             
             # Admin user létrehozása vagy betöltése Flask-Login számára
-            user = User.query.filter_by(student_name='admin').first()
+            user = User.query.filter_by(student_name=admin_username).first()
             if not user:
-                user = User(student_name='admin', email='admin@school.com', role='admin')
-                user.set_password('admin123')
+                user = User(student_name=admin_username, email='admin@school.com', role='admin')
+                user.set_password(admin_password)
                 db.session.add(user)
                 db.session.commit()
             
@@ -1963,12 +1966,14 @@ if __name__ == '__main__':
             app.logger.info("Database tables created.")
             
             # Ellenőrizzük, hogy van-e admin felhasználó
-            admin = User.query.filter_by(student_name='admin').first()
+            admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+            admin_password = os.environ.get('ADMIN_PASSWORD')
+            admin = User.query.filter_by(student_name=admin_username).first()
             if not admin:
                 app.logger.info("Creating admin user...")
                 # Admin felhasználó létrehozása
-                admin = User(student_name='admin', email='admin@school.com', role='admin')
-                admin.set_password('admin123')
+                admin = User(student_name=admin_username, email='admin@school.com', role='admin')
+                admin.set_password(admin_password)
                 db.session.add(admin)
                 db.session.commit()
                 app.logger.info("Admin user created.")
