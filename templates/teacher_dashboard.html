@@ -237,12 +237,12 @@
     background: #f8f9fa;
     border-radius: 4px;
     display: none;
+    gap: 10px;
+    align-items: center;
 }
 
 .bulk-actions.visible {
     display: flex;
-    gap: 10px;
-    align-items: center;
 }
 
 .bulk-btn {
@@ -687,7 +687,7 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     // AJAX navigáció kezelése
     async function navigateTo(url) {
         try {
@@ -713,46 +713,52 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Hiba történt az oldal frissítése közben!');
         }
     }
-    
+
     // Szűrők alaphelyzetbe állítása
     window.resetFilters = function() {
         const searchInput = document.getElementById('search');
         const studentSelect = document.getElementById('student');
         
-        // Mezők törlése
-        searchInput.value = '';
-        studentSelect.value = '';
-        
-        // URL paraméterek törlése és navigálás
-        const params = new URLSearchParams(window.location.search);
-        params.delete('search');
-        params.delete('student');
-        params.delete('page');
-        navigateTo(window.location.pathname);
-    }
+        if (searchInput && studentSelect) {
+            searchInput.value = '';
+            studentSelect.value = '';
+            
+            // URL paraméterek törlése és navigálás
+            const params = new URLSearchParams(window.location.search);
+            params.delete('search');
+            params.delete('student');
+            params.delete('page');
+            navigateTo(window.location.pathname);
+        }
+    };
 
     // Szűrők alkalmazása
     window.applyFilters = function() {
-        const params = new URLSearchParams(window.location.search);
-        const search = document.getElementById('search').value.trim();
-        const student = document.getElementById('student').value;
+        const searchInput = document.getElementById('search');
+        const studentSelect = document.getElementById('student');
         
-        // Töröljük a régi paramétereket
-        params.delete('search');
-        params.delete('student');
-        params.delete('page');
-        
-        // Csak akkor adjuk hozzá az új paramétereket, ha nem üresek
-        if (search) params.set('search', search);
-        if (student) params.set('student', student);
-        
-        // Mindig az első oldalra állítjuk vissza a lapozást
-        params.set('page', '1');
-        
-        // Navigálás az új URL-re
-        navigateTo(window.location.pathname + '?' + params.toString());
-    }
-    
+        if (searchInput && studentSelect) {
+            const params = new URLSearchParams(window.location.search);
+            const search = searchInput.value.trim();
+            const student = studentSelect.value;
+            
+            // Töröljük a régi paramétereket
+            params.delete('search');
+            params.delete('student');
+            params.delete('page');
+            
+            // Csak akkor adjuk hozzá az új paramétereket, ha nem üresek
+            if (search) params.set('search', search);
+            if (student) params.set('student', student);
+            
+            // Mindig az első oldalra állítjuk vissza a lapozást
+            params.set('page', '1');
+            
+            // Navigálás az új URL-re
+            navigateTo(window.location.pathname + '?' + params.toString());
+        }
+    };
+
     // Event listener-ek inicializálása
     function initializeEventListeners() {
         // Rendezés kezelése
@@ -779,7 +785,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 navigateTo(window.location.pathname + '?' + params.toString());
             });
         });
-        
+
+        // Select All checkbox és bulk műveletek kezelése
+        document.querySelectorAll('.class-section').forEach(classSection => {
+            // Select All checkbox
+            const selectAll = classSection.querySelector('.select-all');
+            if (selectAll) {
+                selectAll.onclick = function(e) {
+                    const checkboxes = classSection.querySelectorAll('.file-checkbox:not(.select-all)');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = e.target.checked;
+                    });
+                    updateBulkActionsVisibility(classSection);
+                };
+            }
+
+            // Egyedi checkbox-ok
+            classSection.querySelectorAll('.file-checkbox:not(.select-all)').forEach(checkbox => {
+                checkbox.onclick = function() {
+                    updateSelectAllState(classSection);
+                    updateBulkActionsVisibility(classSection);
+                };
+            });
+
+            // Bulk műveletek gombjai
+            const bulkDownloadBtn = classSection.querySelector('.bulk-download-btn');
+            const bulkDeleteBtn = classSection.querySelector('.bulk-delete-btn');
+
+            if (bulkDownloadBtn) {
+                bulkDownloadBtn.onclick = function() {
+                    const checkedBoxes = classSection.querySelectorAll('.file-checkbox:not(.select-all):checked');
+                    handleBulkDownload(checkedBoxes);
+                };
+            }
+
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.onclick = function() {
+                    const checkedBoxes = classSection.querySelectorAll('.file-checkbox:not(.select-all):checked');
+                    handleBulkDelete(checkedBoxes);
+                };
+            }
+        });
+
         // Szűrők kezelése
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -791,7 +838,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
-        
+
         // Enter billentyű kezelése a szűrő mezőkben
         document.querySelectorAll('.filter-input').forEach(input => {
             input.addEventListener('keypress', (e) => {
@@ -801,7 +848,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
-        
+
         // Lapozás kezelése
         document.querySelectorAll('.page-btn').forEach(btn => {
             if (!btn.classList.contains('disabled')) {
@@ -813,7 +860,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         });
-        
+
         // Fájl törlés és letöltés kezelése
         document.querySelectorAll('.delete-file-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
@@ -834,12 +881,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     const data = await response.json();
                     
                     if (data.success) {
-                        row.remove();
-                        const tbody = row.closest('tbody');
-                        if (!tbody.querySelector('tr')) {
+                        if (row) row.remove();
+                        const tbody = row ? row.closest('tbody') : null;
+                        if (tbody && !tbody.querySelector('tr')) {
                             tbody.innerHTML = '<tr><td colspan="7" class="text-center">Ebben az osztályban még nincsenek feltöltött fájlok.</td></tr>';
                         }
-                        // Frissítjük a fájlok számát
                         updateFileCount();
                     } else {
                         alert(data.message || 'Hiba történt a fájl törlése közben!');
@@ -850,59 +896,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
-        
+
         // Fájl letöltés kezelése
         document.querySelectorAll('.action-btn.download').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const href = btn.href;
-                window.open(href, '_blank');
-            });
-        });
-        
-        // Bulk műveletek kezelése
-        document.querySelectorAll('.class-section').forEach(classSection => {
-            const selectAll = classSection.querySelector('.select-all');
-            if (selectAll) {
-                selectAll.addEventListener('change', (e) => {
-                    const checkboxes = classSection.querySelectorAll('.file-checkbox:not(.select-all)');
-                    checkboxes.forEach(checkbox => {
-                        checkbox.checked = e.target.checked;
-                    });
-                    handleBulkSelectionChange(classSection);
-                });
-            }
-            
-            classSection.querySelectorAll('.file-checkbox:not(.select-all)').forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    handleBulkSelectionChange(classSection);
-                });
+                if (href) window.open(href, '_blank');
             });
         });
     }
-    
-    // Bulk műveletek változás kezelése
-    function handleBulkSelectionChange(classSection) {
+
+    // Select All checkbox állapotának frissítése
+    function updateSelectAllState(classSection) {
+        const selectAll = classSection.querySelector('.select-all');
+        const checkboxes = classSection.querySelectorAll('.file-checkbox:not(.select-all)');
+        if (selectAll && checkboxes.length > 0) {
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            selectAll.checked = allChecked;
+        }
+    }
+
+    // Bulk műveletek gombjainak láthatóságának frissítése
+    function updateBulkActionsVisibility(classSection) {
         const checkedBoxes = classSection.querySelectorAll('.file-checkbox:not(.select-all):checked');
         const bulkActions = classSection.querySelector('.bulk-actions');
         const selectedCount = classSection.querySelector('.selected-count');
-        const bulkDownloadBtn = classSection.querySelector('.bulk-download-btn');
-        const bulkDeleteBtn = classSection.querySelector('.bulk-delete-btn');
-        
-        if (checkedBoxes.length > 0) {
-            bulkActions.classList.add('visible');
-            selectedCount.textContent = `${checkedBoxes.length} fájl kiválasztva`;
-            
-            // Bulk műveletek eseménykezelőinek hozzáadása
-            bulkDownloadBtn.onclick = () => handleBulkDownload(checkedBoxes);
-            bulkDeleteBtn.onclick = () => handleBulkDelete(checkedBoxes);
-        } else {
-            bulkActions.classList.remove('visible');
+
+        if (bulkActions && selectedCount) {
+            if (checkedBoxes.length > 0) {
+                bulkActions.classList.add('visible');
+                selectedCount.textContent = `${checkedBoxes.length} fájl kiválasztva`;
+            } else {
+                bulkActions.classList.remove('visible');
+            }
         }
     }
 
     // Tömeges letöltés kezelése
     async function handleBulkDownload(checkedBoxes) {
+        if (!checkedBoxes || checkedBoxes.length === 0) {
+            alert('Nincsenek kiválasztott fájlok!');
+            return;
+        }
+
         const fileIds = Array.from(checkedBoxes).map(cb => cb.value);
         const total = fileIds.length;
         let completed = 0;
@@ -917,7 +954,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = response.headers.get('Content-Disposition').split('filename=')[1];
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    if (contentDisposition) {
+                        a.download = contentDisposition.split('filename=')[1];
+                    }
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -925,6 +965,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } catch (error) {
                 console.error('Error downloading file:', error);
+                alert('Hiba történt a fájl letöltése közben!');
             }
             
             completed++;
@@ -934,13 +975,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Tömeges törlés kezelése
     async function handleBulkDelete(checkedBoxes) {
-        if (!confirm('Biztosan törölni szeretnéd a kiválasztott fájlokat?')) return;
-        
-        const fileIds = Array.from(checkedBoxes).map(cb => cb.value);
-        if (fileIds.length === 0) {
+        if (!checkedBoxes || checkedBoxes.length === 0) {
             alert('Nincsenek kiválasztott fájlok!');
             return;
         }
+
+        if (!confirm('Biztosan törölni szeretnéd a kiválasztott fájlokat?')) {
+            return;
+        }
+
+        const fileIds = Array.from(checkedBoxes).map(cb => cb.value);
 
         try {
             const response = await fetch('/bulk_delete', {
@@ -958,9 +1002,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Töröljük a kiválasztott sorokat
                 checkedBoxes.forEach(cb => {
                     const row = cb.closest('tr');
-                    if (row) {
-                        row.remove();
-                    }
+                    if (row) row.remove();
                 });
                 
                 // Frissítjük az üres táblázatokat
@@ -977,9 +1019,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelectorAll('.file-checkbox').forEach(cb => {
                     cb.checked = false;
                 });
-                updateBulkActions();
                 
-                alert(data.message);
+                // Frissítjük a bulk műveletek gombjait
+                document.querySelectorAll('.class-section').forEach(section => {
+                    updateBulkActionsVisibility(section);
+                });
+                
+                alert(data.message || 'A fájlok sikeresen törölve!');
             } else {
                 alert(data.message || 'Hiba történt a fájlok törlése közben!');
             }
@@ -988,125 +1034,50 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Hiba történt a fájlok törlése közben!');
         }
     }
-    
+
     // Fájlok számának frissítése
     function updateFileCount() {
         document.querySelectorAll('.class-section').forEach(section => {
             const tbody = section.querySelector('tbody');
-            const fileCount = tbody.querySelectorAll('tr:not(.no-files)').length;
             const countElement = section.querySelector('.file-count');
-            if (countElement) {
+            if (tbody && countElement) {
+                const fileCount = tbody.querySelectorAll('tr:not(.no-files)').length;
                 countElement.textContent = `${fileCount} fájl`;
             }
         });
     }
 
-    // Tömeges műveletek gombjainak frissítése
-    function updateBulkActions() {
-        const checkedBoxes = document.querySelectorAll('.file-checkbox:checked');
-        const bulkActions = document.querySelectorAll('.bulk-actions');
+    // Progress bar frissítése
+    function updateProgress(progress) {
+        const progressBar = document.querySelector('.progress-bar');
+        const progressStatus = document.querySelector('.progress-status');
+        const progressContainer = document.querySelector('.progress-container');
         
-        bulkActions.forEach(actions => {
-            if (checkedBoxes.length > 0) {
-                actions.classList.remove('d-none');
-            } else {
-                actions.classList.add('d-none');
+        if (progressBar && progressStatus && progressContainer) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${progress}%`;
+            progressStatus.textContent = `${progress}%`;
+            
+            if (progress >= 100) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    progressStatus.textContent = '0%';
+                }, 1000);
             }
-        });
+        }
     }
-
-    // Event listener-ek hozzáadása a checkbox-okhoz
-    document.querySelectorAll('.file-checkbox').forEach(cb => {
-        cb.addEventListener('change', updateBulkActions);
-    });
 
     // Kezdeti állapot beállítása
-    updateBulkActions();
-    updateFileCount();
-    
-    // Browser előre/hátra gombok kezelése
-    window.addEventListener('popstate', () => {
-        navigateTo(window.location.href);
-    });
-});
-
-// Lazy loading implementation
-let isLoading = false;
-let currentPage = 1;
-const perPage = 20;
-
-function loadMoreFiles(classSection) {
-    if (isLoading) return;
-    
-    const tbody = classSection.querySelector('tbody');
-    const loadingTrigger = classSection.querySelector('.lazy-load-trigger');
-    
-    if (!loadingTrigger) return;
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !isLoading) {
-                currentPage++;
-                loadNextPage(classSection, currentPage);
-            }
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeEventListeners();
+        updateFileCount();
+        
+        // Browser előre/hátra gombok kezelése
+        window.addEventListener('popstate', () => {
+            navigateTo(window.location.href);
         });
     });
-    
-    observer.observe(loadingTrigger);
-}
-
-function loadNextPage(classSection, page) {
-    isLoading = true;
-    const loadingTrigger = classSection.querySelector('.lazy-load-trigger');
-    loadingTrigger.innerHTML = '<div class="loading-spinner"></div>';
-    
-    const params = new URLSearchParams(window.location.search);
-    params.set('page', page);
-    
-    fetch(`${window.location.pathname}?${params.toString()}`)
-        .then(response => response.text())
-        .then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newRows = doc.querySelectorAll('tbody tr');
-            
-            if (newRows.length > 0) {
-                const tbody = classSection.querySelector('tbody');
-                newRows.forEach(row => tbody.appendChild(row));
-            }
-            
-            if (newRows.length < perPage) {
-                loadingTrigger.remove();
-            } else {
-                loadingTrigger.innerHTML = '';
-            }
-            
-            isLoading = false;
-        })
-        .catch(error => {
-            console.error('Error loading more files:', error);
-            loadingTrigger.innerHTML = 'Hiba történt a további fájlok betöltése közben.';
-            isLoading = false;
-        });
-}
-
-// Progress bar for bulk operations
-function updateProgress(progress) {
-    const progressBar = document.querySelector('.progress-bar');
-    const progressStatus = document.querySelector('.progress-status');
-    const progressContainer = document.querySelector('.progress-container');
-    
-    progressContainer.style.display = 'block';
-    progressBar.style.width = `${progress}%`;
-    progressStatus.textContent = `${progress}%`;
-    
-    if (progress >= 100) {
-        setTimeout(() => {
-            progressContainer.style.display = 'none';
-            progressBar.style.width = '0%';
-            progressStatus.textContent = '0%';
-        }, 1000);
-    }
-}
+})();
 </script>
 {% endblock %} 
