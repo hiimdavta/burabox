@@ -18,10 +18,12 @@ Ez a webalkalmazás egy általános iskolai fájlkezelő rendszer. Lehetővé te
 - 🔑 Biztonságos jelszókezelés (bcrypt hashelés)
 - 📝 Fájltípus korlátozások és MIME típus ellenőrzés
 - 🧹 Fájlnév sanitizálás
-- ⏱️ Rate limiting (10 feltöltés per perc)
-- 📏 Fájlméret limit (10MB)
+- ⏱️ Rate limiting (120 kérés per perc)
+- 📏 Fájlméret limit (15MB)
 - 🔒 Biztonságos session kezelés
 - 🛡️ SQL injection védelem
+- 🔐 Környezeti változók használata bizalmas adatokhoz
+- 🚫 Tiltott fájltípusok és MIME típusok ellenőrzése
 
 ## Telepítés
 
@@ -111,12 +113,80 @@ További beállítások és részletek: lásd a `.env.example` fájlt.
 - 📱 Reszponzív design
 - 🧪 Unit tesztek unittest framework-kal
 
-## Hibaelhárítás
-- Ha a statikus fájlok nem töltődnek be, ellenőrizd a Flask konfigurációt
-- Ha a feltöltés nem működik, ellenőrizd a fájl jogosultságokat és a méretkorlátokat
-- Ha az adatbázis kapcsolat nem működik, ellenőrizd a környezeti változókat
-- Ha a bejelentkezés nem működik, ellenőrizd a `.env` fájl beállításait
-- Ha a SECRET_KEY nincs beállítva, generálj egy újat: `python -c 'import secrets; print(secrets.token_hex(32))'`
+## Fejlesztői környezet
+A fejlesztéshez ajánlott beállítások:
+
+1. Fejlesztői mód bekapcsolása:
+```bash
+# .env fájlban:
+FLASK_ENV=development
+DEBUG=True
+```
+
+2. Teszt adatbázis használata:
+```bash
+# .env fájlban:
+DATABASE_URL=sqlite:///test.db
+```
+
+3. Fejlesztői eszközök:
+- VS Code vagy PyCharm IDE
+- Git verziókezelő
+- Postman vagy hasonló API tesztelő eszköz
+- SQLite Browser az adatbázis kezeléséhez
+
+## Fejlesztői útmutató
+
+### Környezeti változók tesztelése
+1. Környezeti változók ellenőrzése:
+```python
+from app import app
+print(app.config['ADMIN_USERNAME'])  # Ellenőrizd, hogy betöltődik-e
+```
+
+2. Környezeti változók tesztelése fejlesztői módban:
+```bash
+# .env.test fájl létrehozása teszteléshez
+cp .env.example .env.test
+# Módosítsd a .env.test fájlt teszt értékekkel
+```
+
+### Adatbázis migráció tesztelése
+```bash
+# Új migráció létrehozása
+flask db migrate -m "migration message"
+# Migráció alkalmazása
+flask db upgrade
+```
+
+## Gyakori kérdések (FAQ)
+
+### Környezeti változók
+Q: Miért nem működik a bejelentkezés?
+A: Ellenőrizd a `.env` fájlt:
+- A fájl létezik-e a projekt gyökérkönyvtárában
+- A `ADMIN_USERNAME` és `ADMIN_PASSWORD` helyesen van-e beállítva
+- A `SECRET_KEY` be van-e állítva
+
+Q: Hogyan generáljak biztonságos SECRET_KEY-t?
+A: Használd a Python secrets modult:
+```bash
+python -c 'import secrets; print(secrets.token_hex(32))'
+```
+
+### Adatbázis
+Q: Miért nem jelennek meg az adatok?
+A: Ellenőrizd:
+- Az adatbázis migráció sikeresen lefutott-e
+- A `DATABASE_URL` helyesen van-e beállítva
+- Az adatbázis fájl létezik-e és olvasható-e
+
+### Fájlkezelés
+Q: Miért nem működik a fájlfeltöltés?
+A: Ellenőrizd:
+- A `UPLOAD_FOLDER` létezik-e és írható-e
+- A fájl mérete nem haladja-e meg a `MAX_CONTENT_LENGTH` értékét
+- A fájl típusa engedélyezett-e
 
 ## Licenc
 Ez a projekt az MIT licenc alatt áll. Lásd a LICENSE fájlt részletekért.
