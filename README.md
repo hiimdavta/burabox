@@ -38,8 +38,8 @@ Ez a webalkalmazás egy általános iskolai fájlkezelő rendszer. Lehetővé te
 ### Telepítési lépések
 1. Klónozd a repository-t:
 ```bash
-git clone https://github.com/hiimdavta/teszt-szerver.git
-cd teszt-szerver
+git clone https://github.com/hiimdavta/burabox_v1.0.0.git
+cd burabox_v1.0.0
 ```
 
 2. Hozz létre és aktiválj egy virtuális környezetet:
