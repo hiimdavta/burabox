@@ -1,31 +1,57 @@
-# Iskolai Fájlkezelő Rendszer
+# BuraBox - Iskolai Fájlkezelő Rendszer v1.0.3
 
 ## Leírás
-Ez a webalkalmazás egy általános iskolai fájlkezelő rendszer. Lehetővé teszi a tanárok és diákok számára a fájlok feltöltését, kezelését és megosztását osztályonként. A rendszer biztonságos, felhasználóbarát és reszponzív felülettel rendelkezik.
+BuraBox egy modern, biztonságos és felhasználóbarát iskolai fájlkezelő rendszer. A rendszer lehetővé teszi a tanárok és diákok számára a fájlok hatékony kezelését, feltöltését és megosztását osztályonként. A legújabb verzió (1.0.3) jelentős biztonsági és funkcionális fejlesztéseket tartalmaz.
 
-## Főbb funkciók
-- 🔐 Egységes bejelentkezési rendszer tanárok és diákok számára
-- 👥 Felhasználói szerepkörök (admin, tanár, diák)
-- 📁 Osztályonkénti fájlkezelés
-- ⬆️ Fájlok feltöltése, letöltése és törlése
-- 📦 Tömeges fájlműveletek (tömeges feltöltés, törlés, letöltés)
-- 🔍 Fájlok szűrése és rendezése
-- 🔒 Biztonságos fájlkezelés
-- 📱 Reszponzív felhasználói felület
+## 🚀 Főbb funkciók
+- 🔐 Többfaktoros bejelentkezési rendszer (admin, tanár, diák)
+- 👥 Fejlett felhasználókezelés és szerepkörök
+- 📁 Osztályonkénti fájlkezelés és megosztás
+- ⬆️ Többfunkciós fájlműveletek:
+  * Egyszeri és tömeges feltöltés
+  * Biztonságos letöltés
+  * Intelligens törlés
+  * Automatikus fájlnév kezelés
+- 🔍 Fejlett keresés és szűrés:
+  * Fájlnév alapján
+  * Feltöltési dátum szerint
+  * Fájltípus szerint
+  * Feltöltő szerint
+- 📱 Modern, reszponzív felület:
+  * Bootstrap 5 alapú design
+  * Mobilbarát felület
+  * Sötét/világos téma támogatás
+- 🌐 Többnyelvű támogatás (Flask-Babel)
+- 📧 Email értesítések (Flask-Mail)
+- ⚡ Teljesítmény optimalizáció (Flask-Caching)
 
-## Biztonsági funkciók
-- 🔐 Egységes felhasználókezelés Flask-Login segítségével
-- 🔑 Biztonságos jelszókezelés (bcrypt hashelés)
-- 📝 Fájltípus korlátozások és MIME típus ellenőrzés
-- 🧹 Fájlnév sanitizálás
-- ⏱️ Rate limiting (120 kérés per perc)
-- 📏 Fájlméret limit (15MB)
-- 🔒 Biztonságos session kezelés
-- 🛡️ SQL injection védelem
-- 🔐 Környezeti változók használata bizalmas adatokhoz
-- 🚫 Tiltott fájltípusok és MIME típusok ellenőrzése
+## 🛡️ Biztonsági funkciók
+- 🔐 Fejlett felhasználókezelés:
+  * Flask-Login integráció
+  * Biztonságos session kezelés
+  * Jelszó visszaállítás
+- 🔑 Erős jelszókezelés:
+  * bcrypt hashelés
+  * Jelszó komplexitás ellenőrzés
+  * Jelszó lejárat
+- 📝 Fájlbiztonság:
+  * MIME típus ellenőrzés
+  * Fájlnév sanitizálás
+  * Vírusellenőrzés integráció
+- ⏱️ Rate limiting és DDoS védelem:
+  * 120 kérés/percenként limit
+  * IP alapú korlátozás
+  * Brute force védelem
+- 🔒 Adatbiztonság:
+  * SQL injection védelem
+  * XSS védelem
+  * CSRF védelem
+- 🛡️ Környezeti biztonság:
+  * Környezeti változók használata
+  * Biztonságos cookie kezelés
+  * HTTPS kényszerítés
 
-## Telepítés
+## 💻 Telepítés
 
 ### Előfeltételek
 - Python 3.11 vagy újabb
@@ -35,166 +61,106 @@ Ez a webalkalmazás egy általános iskolai fájlkezelő rendszer. Lehetővé te
 ### Rendszerkövetelmények
 - macOS: `brew install libmagic`
 - Linux: `apt-get install libmagic1` vagy `yum install file-libs`
-- Windows: A python-magic-bin csomag automatikusan telepíti a szükséges DLL-t
+- Windows: Automatikus telepítés a `setup_windows.bat` segítségével
 
 ### Telepítési lépések
+
+#### Windows
+1. Futtasd a `setup_windows.bat` fájlt
+2. Kövesd a telepítő útmutatását
+3. A telepítés után indítsd el a `start_server.bat` fájlt
+
+#### macOS/Linux
 1. Klónozd a repository-t:
 ```bash
-git clone https://github.com/hiimdavta/burabox_v1.0.0.git
-cd burabox_v1.0.0
+git clone https://github.com/hiimdavta/burabox.git
+cd burabox
 ```
 
-2. Hozz létre és aktiválj egy virtuális környezetet:
+2. Futtasd a telepítő szkriptet:
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-venv\Scripts\activate     # Windows
-```
+# macOS
+chmod +x start_app.command
+./start_app.command
 
-3. Telepítsd a függőségeket:
-```bash
+# Linux
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-4. Állítsd be a környezeti változókat:
+3. Állítsd be a környezeti változókat:
 ```bash
-# Másold le a .env.example fájlt .env néven
 cp .env.example .env
-
 # Módosítsd a .env fájlt a saját beállításaiddal
-# Fontos: változtasd meg az admin jelszót és a SECRET_KEY értékét!
 ```
 
-5. Futtasd az adatbázis migrációt:
-```bash
-python migrations.py
-```
-
-6. Indítsd el a szervert:
+4. Indítsd el a szervert:
 ```bash
 python app.py
 ```
 
-## Környezeti változók
+## ⚙️ Környezeti változók
 A rendszer a következő környezeti változókat használja (`.env` fájlban):
 
 ### Kötelező beállítások
-- `ADMIN_USERNAME`: Admin felhasználónév (alapértelmezett: 'admin')
+- `ADMIN_USERNAME`: Admin felhasználónév
 - `ADMIN_PASSWORD`: Admin jelszó (kötelező megváltoztatni!)
-- `SECRET_KEY`: Flask alkalmazás titkos kulcs (kötelező megváltoztatni!)
+- `SECRET_KEY`: Flask alkalmazás titkos kulcs
+- `MAIL_SERVER`: SMTP szerver címe
+- `MAIL_PORT`: SMTP szerver portja
+- `MAIL_USERNAME`: SMTP felhasználónév
+- `MAIL_PASSWORD`: SMTP jelszó
 
 ### Opcionális beállítások
 - `FLASK_ENV`: Környezet típusa ('development' vagy 'production')
-- `DATABASE_URL`: Adatbázis kapcsolati URL (alapértelmezett: SQLite)
+- `DATABASE_URL`: Adatbázis kapcsolati URL
 - `MAX_CONTENT_LENGTH`: Maximális fájlméret (alapértelmezett: 15MB)
-- `SESSION_COOKIE_SECURE`: Biztonságos cookie-k (alapértelmezett: True)
-- `PERMANENT_SESSION_LIFETIME`: Session élettartam (alapértelmezett: 24 óra)
+- `SESSION_COOKIE_SECURE`: Biztonságos cookie-k
+- `PERMANENT_SESSION_LIFETIME`: Session élettartam
+- `CACHE_TYPE`: Cache típusa (alapértelmezett: 'simple')
+- `BABEL_DEFAULT_LOCALE`: Alapértelmezett nyelv
+- `RATELIMIT_STORAGE_URL`: Rate limit tároló URL
 
-További beállítások és részletek: lásd a `.env.example` fájlt.
+## 🛠️ Fejlesztői információk
 
-## Használat
-1. Nyisd meg a böngészőben: `http://localhost:5051`
-2. Válaszd ki a felhasználó típusát (tanár/diák)
-3. Jelentkezz be a megfelelő felhasználóval
-4. Kezeld a fájlokat az osztályodban:
-   - Fájlok feltöltése (egyszeri vagy tömeges)
-   - Fájlok letöltése (egyszeri vagy tömeges)
-   - Fájlok törlése (egyszeri vagy tömeges)
-   - Fájlok szűrése és rendezése
+### Használt technológiák
+- 🚀 Flask 3.0.2
+- 🗄️ SQLAlchemy 2.0.27
+- 👤 Flask-Login 0.6.3
+- 📦 Flask-Migrate 4.0.5
+- ⏱️ Flask-Limiter 3.5.0
+- 🔍 python-magic 0.4.27
+- 🎨 Bootstrap 5
+- 🌐 Flask-Babel 4.0.0
+- 📧 Flask-Mail 0.9.1
+- ⚡ Flask-Caching 2.1.0
+- 🛡️ Flask-Talisman 1.1.0
 
-## Fejlesztői információk
-- 🚀 Flask web framework (3.0.2)
-- 🗄️ SQLAlchemy ORM (2.0.27)
-- 👤 Flask-Login felhasználókezelés
-- 📦 Flask-Migrate adatbázis migráció
-- ⏱️ Flask-Limiter rate limiting
-- 🔍 python-magic MIME típus ellenőrzés
-- 🎨 Bootstrap 5 UI framework
-- 📱 Reszponzív design
-- 🧪 Unit tesztek unittest framework-kal
+### Fejlesztői eszközök
+- 🧪 Unit tesztek (unittest)
+- 📝 Kód formázás (black)
+- 🔍 Linting (flake8)
+- 📊 Kód lefedettség (coverage)
 
-## Fejlesztői környezet
-A fejlesztéshez ajánlott beállítások:
+## 📚 Dokumentáció
+- [Telepítési útmutató](docs/INSTALL.md)
+- [Fejlesztői dokumentáció](docs/DEVELOPMENT.md)
+- [API dokumentáció](docs/API.md)
+- [Biztonsági útmutató](docs/SECURITY.md)
 
-1. Fejlesztői mód bekapcsolása:
-```bash
-# .env fájlban:
-FLASK_ENV=development
-DEBUG=True
-```
+## 🤝 Közreműködés
+A projekt nyitott a közreműködésre! Kérjük, olvasd el a [közreműködési útmutatót](CONTRIBUTING.md) a részletekért.
 
-2. Teszt adatbázis használata:
-```bash
-# .env fájlban:
-DATABASE_URL=sqlite:///test.db
-```
+## 📄 Licenc
+Ez a projekt az MIT licenc alatt áll. Lásd a [LICENSE](LICENSE) fájlt részletekért.
 
-3. Fejlesztői eszközök:
-- VS Code vagy PyCharm IDE
-- Git verziókezelő
-- Postman vagy hasonló API tesztelő eszköz
-- SQLite Browser az adatbázis kezeléséhez
+## 📞 Kapcsolat
+- Email: [email protected]
+- GitHub Issues: [Problémák jelentése](https://github.com/hiimdavta/burabox/issues)
+- Discord: [Közösségi szerver](https://discord.gg/burabox)
 
-## Fejlesztői útmutató
-
-### Környezeti változók tesztelése
-1. Környezeti változók ellenőrzése:
-```python
-from app import app
-print(app.config['ADMIN_USERNAME'])  # Ellenőrizd, hogy betöltődik-e
-```
-
-2. Környezeti változók tesztelése fejlesztői módban:
-```bash
-# .env.test fájl létrehozása teszteléshez
-cp .env.example .env.test
-# Módosítsd a .env.test fájlt teszt értékekkel
-```
-
-### Adatbázis migráció tesztelése
-```bash
-# Új migráció létrehozása
-flask db migrate -m "migration message"
-# Migráció alkalmazása
-flask db upgrade
-```
-
-## Gyakori kérdések (FAQ)
-
-### Környezeti változók
-Q: Miért nem működik a bejelentkezés?
-A: Ellenőrizd a `.env` fájlt:
-- A fájl létezik-e a projekt gyökérkönyvtárában
-- A `ADMIN_USERNAME` és `ADMIN_PASSWORD` helyesen van-e beállítva
-- A `SECRET_KEY` be van-e állítva
-
-Q: Hogyan generáljak biztonságos SECRET_KEY-t?
-A: Használd a Python secrets modult:
-```bash
-python -c 'import secrets; print(secrets.token_hex(32))'
-```
-
-### Adatbázis
-Q: Miért nem jelennek meg az adatok?
-A: Ellenőrizd:
-- Az adatbázis migráció sikeresen lefutott-e
-- A `DATABASE_URL` helyesen van-e beállítva
-- Az adatbázis fájl létezik-e és olvasható-e
-
-### Fájlkezelés
-Q: Miért nem működik a fájlfeltöltés?
-A: Ellenőrizd:
-- A `UPLOAD_FOLDER` létezik-e és írható-e
-- A fájl mérete nem haladja-e meg a `MAX_CONTENT_LENGTH` értékét
-- A fájl típusa engedélyezett-e
-
-## Licenc
-Ez a projekt az MIT licenc alatt áll. Lásd a LICENSE fájlt részletekért.
-
-## Kapcsolat
-Kérdések, javaslatok: [email protected]
-
-## Köszönet
+## 🙏 Köszönet
 Köszönjük minden közreműködőnek és tesztelőnek a segítségüket a projekt fejlesztésében!
 
 ## Központi telepítés
