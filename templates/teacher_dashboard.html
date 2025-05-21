@@ -1,0 +1,1083 @@
+{% extends "base.html" %}
+
+{% block title %}Tanár vezérlőpult{% endblock %}
+
+{% block meta_description %}Tanári vezérlőpult a BuraBox fájlkezelő rendszerében{% endblock %}
+
+{% block extra_head %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- Flatpickr for date picking -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/hu.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard-title {
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.class-section {
+    margin-bottom: 2rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.class-header {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-bottom: 1px solid #dee2e6;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.class-name {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #333;
+}
+
+.class-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.class-content {
+    padding: 1rem;
+    overflow-x: auto;
+}
+
+.file-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.file-table th,
+.file-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.file-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #666;
+    position: relative;
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+    min-width: 100px;
+    vertical-align: middle;
+}
+
+.sort-header {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    position: relative;
+    padding-right: 25px;
+    display: block;
+    width: 100%;
+}
+
+.sort-header-content {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.sort-header i {
+    opacity: 0.3;
+    transition: opacity 0.2s;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.sort-header i.fa-sort {
+    display: inline-block;
+}
+
+.sort-header.active i.fa-sort {
+    display: none;
+}
+
+.sort-header.active.sort-asc i.fa-sort-up,
+.sort-header.active.sort-desc i.fa-sort-down {
+    display: inline-block;
+}
+
+.sort-header:hover i {
+    opacity: 0.7;
+}
+
+.sort-header.active i {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.sort-header.active.sort-asc i.fa-sort-up {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.sort-header.active.sort-desc i.fa-sort-down {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.file-table th:first-child {
+    min-width: 40px;
+    width: 40px;
+    text-align: center;
+}
+
+.file-table th:last-child {
+    min-width: 100px;
+    width: 100px;
+    text-align: center;
+}
+
+.file-table th.sort-header {
+    padding-right: 25px;
+}
+
+.file-table tr:hover {
+    background: #f8f9fa;
+}
+
+.file-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.student-name {
+    font-weight: 500;
+    color: #666;
+}
+
+.file-name {
+    color: #333;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-name:hover {
+    color: #007bff;
+}
+
+.file-meta {
+    color: #888;
+    font-size: 0.875rem;
+}
+
+.file-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+}
+
+.action-btn:hover {
+    background: #f8f9fa;
+}
+
+.action-btn.download {
+    color: #28a745;
+}
+
+.action-btn.download:hover {
+    color: #218838;
+}
+
+.action-btn.delete {
+    color: #dc3545;
+}
+
+.action-btn.delete:hover {
+    color: #c82333;
+}
+
+.bulk-actions {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    display: none;
+    gap: 10px;
+    align-items: center;
+}
+
+.bulk-actions.visible {
+    display: flex;
+}
+
+.bulk-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.bulk-btn.download {
+    background: #28a745;
+    color: white;
+}
+
+.bulk-btn.download:hover {
+    background: #218838;
+}
+
+.bulk-btn.delete {
+    background: #dc3545;
+    color: white;
+}
+
+.bulk-btn.delete:hover {
+    background: #c82333;
+}
+
+.no-files {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+/* Új stílusok a kereséshez és szűréshez */
+.filters {
+    background: #f8f9fa;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-size: 0.875rem;
+    color: #666;
+}
+
+.filter-input {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.filter-btn {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.filter-btn:hover {
+    background: var(--primary-color-dark);
+}
+
+.reset-btn {
+    background: #6c757d;
+}
+
+.reset-btn:hover {
+    background: #5a6268;
+}
+
+/* Lapozás stílusai */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 1rem;
+}
+
+.page-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.page-btn:hover {
+    background: #f8f9fa;
+}
+
+.page-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.page-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Rendezési ikonok stílusai */
+.sort-header {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    position: relative;
+    padding-right: 25px;
+    display: block;
+    width: 100%;
+}
+
+.sort-header-content {
+    display: inline-block;
+    margin-right: 20px;
+}
+
+.sort-header i {
+    opacity: 0.3;
+    transition: opacity 0.2s;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.sort-header i.fa-sort {
+    display: inline-block;
+}
+
+.sort-header.active i.fa-sort {
+    display: none;
+}
+
+.sort-header.active.sort-asc i.fa-sort-up,
+.sort-header.active.sort-desc i.fa-sort-down {
+    display: inline-block;
+}
+
+.sort-header:hover i {
+    opacity: 0.7;
+}
+
+.sort-header.active i {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.sort-header.active.sort-asc i.fa-sort-up {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.sort-header.active.sort-desc i.fa-sort-down {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+/* Reszponzív igazítások */
+@media (max-width: 768px) {
+    .filters {
+        grid-template-columns: 1fr;
+    }
+    
+    .filter-group {
+        width: 100%;
+    }
+}
+
+.last-login {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: -1rem;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.file-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    background: #e9ecef;
+    color: #495057;
+}
+
+.progress-container {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.progress {
+    height: 20px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.progress-status {
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Lazy loading styles */
+.lazy-load-trigger {
+    height: 20px;
+    width: 100%;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard">
+    <div class="dashboard-title">
+        <h1>{{ teacher_name }} - Tanári vezérlőpult</h1>
+        <p class="last-login">Utolsó bejelentkezés: {{ last_login|humanize_datetime if last_login else 'Első bejelentkezés' }}</p>
+    </div>
+
+    {% for class_name, files in class_files.items() %}
+    <div class="class-section">
+        <div class="class-header">
+            <h2 class="class-name">{{ class_name }}</h2>
+        </div>
+        
+        <div class="class-content">
+            <!-- Szűrők -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="search">Keresés</label>
+                    <input type="text" id="search" name="search" class="filter-input" 
+                           value="{{ search_query }}" placeholder="Fájlnév vagy diák neve...">
+                </div>
+                
+                <div class="filter-group">
+                    <label for="student">Diák szerint</label>
+                    <select id="student" name="student" class="filter-input">
+                        <option value="">Minden diák</option>
+                        {% for student in class_students[class_name] %}
+                        <option value="{{ student }}" {% if student == student_filter %}selected{% endif %}>
+                            {{ student }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <button type="button" class="filter-btn" onclick="applyFilters()">
+                        <i class="fas fa-filter"></i> Szűrés
+                    </button>
+                    <button type="button" class="filter-btn reset-btn" onclick="resetFilters()">
+                        <i class="fas fa-undo"></i> Alaphelyzet
+                    </button>
+                </div>
+            </div>
+
+            {% if files %}
+            <div class="bulk-actions">
+                <span class="selected-count"></span>
+                <button class="bulk-btn download bulk-download-btn">
+                    <i class="fas fa-download"></i>
+                    Kijelölt fájlok letöltése
+                </button>
+                <button class="bulk-btn delete bulk-delete-btn">
+                    <i class="fas fa-trash-alt"></i>
+                    Kijelölt fájlok törlése
+                </button>
+            </div>
+            
+            <table class="file-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" class="file-checkbox select-all" title="Összes kijelölése"></th>
+                        <th>
+                            <div class="sort-header {% if sort_by == 'student' %}active sort-{{ sort_order }}{% endif %}" data-sort="student">
+                                <span class="sort-header-content">Diák</span>
+                                <i class="fas fa-sort"></i>
+                                <i class="fas fa-sort-up"></i>
+                                <i class="fas fa-sort-down"></i>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="sort-header {% if sort_by == 'filename' %}active sort-{{ sort_order }}{% endif %}" data-sort="filename">
+                                <span class="sort-header-content">Fájl neve</span>
+                                <i class="fas fa-sort"></i>
+                                <i class="fas fa-sort-up"></i>
+                                <i class="fas fa-sort-down"></i>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="sort-header {% if sort_by == 'filetype' %}active sort-{{ sort_order }}{% endif %}" data-sort="filetype">
+                                <span class="sort-header-content">Típus</span>
+                                <i class="fas fa-sort"></i>
+                                <i class="fas fa-sort-up"></i>
+                                <i class="fas fa-sort-down"></i>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="sort-header {% if sort_by == 'size' %}active sort-{{ sort_order }}{% endif %}" data-sort="size">
+                                <span class="sort-header-content">Méret</span>
+                                <i class="fas fa-sort"></i>
+                                <i class="fas fa-sort-up"></i>
+                                <i class="fas fa-sort-down"></i>
+                            </div>
+                        </th>
+                        <th>
+                            <div class="sort-header {% if sort_by == 'uploaded_at' %}active sort-{{ sort_order }}{% endif %}" data-sort="uploaded_at">
+                                <span class="sort-header-content">Feltöltve</span>
+                                <i class="fas fa-sort"></i>
+                                <i class="fas fa-sort-up"></i>
+                                <i class="fas fa-sort-down"></i>
+                            </div>
+                        </th>
+                        <th>Műveletek</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in files %}
+                    <tr>
+                        <td>
+                            <input type="checkbox" class="file-checkbox" value="{{ file.id }}">
+                        </td>
+                        <td class="student-name">{{ file.student_name }}</td>
+                        <td>
+                            <span class="file-name">
+                                <i class="fas fa-file"></i>
+                                {{ file.original_filename }}
+                            </span>
+                        </td>
+                        <td class="file-type">
+                            <span class="file-type-badge">{{ file.original_filename|file_extension }}</span>
+                        </td>
+                        <td>{{ file.size|filesizeformat }}</td>
+                        <td>{{ file.uploaded_at|humanize_datetime }}</td>
+                        <td class="file-actions">
+                            <a href="{{ url_for('download_file', file_id=file.id) }}" class="action-btn download" title="Letöltés">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            <button class="action-btn delete delete-file-btn" data-file-id="{{ file.id }}" title="Törlés">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Lapozás -->
+            {% if total_pages[class_name] > 1 %}
+            <div class="pagination">
+                <button class="page-btn {% if current_page == 1 %}disabled{% endif %}"
+                        onclick="changePage({{ current_page - 1 }})"
+                        {% if current_page == 1 %}disabled{% endif %}>
+                    <i class="fas fa-chevron-left"></i> Előző
+                </button>
+                
+                {% for p in range(1, total_pages[class_name] + 1) %}
+                <button class="page-btn {% if p == current_page %}active{% endif %}"
+                        onclick="changePage({{ p }})">
+                    {{ p }}
+                </button>
+                {% endfor %}
+                
+                <button class="page-btn {% if current_page == total_pages[class_name] %}disabled{% endif %}"
+                        onclick="changePage({{ current_page + 1 }})"
+                        {% if current_page == total_pages[class_name] %}disabled{% endif %}>
+                    Következő <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="no-files">
+                <p>Ebben az osztályban még nincsenek feltöltött fájlok.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        <p>Önhöz még nincsenek osztályok hozzárendelve.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Progress bar for bulk operations -->
+<div class="progress-container" style="display: none;">
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+    </div>
+    <div class="progress-status">0%</div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    // AJAX navigáció kezelése
+    async function navigateTo(url) {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const html = await response.text();
+            
+            // Új tartalom beszúrása
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newContent = doc.querySelector('.dashboard').innerHTML;
+            document.querySelector('.dashboard').innerHTML = newContent;
+            
+            // URL frissítése az új paraméterekkel
+            window.history.pushState({}, '', url);
+            
+            // Event listener-ek újrahozzáadása
+            initializeEventListeners();
+        } catch (error) {
+            console.error('Navigation error:', error);
+            alert('Hiba történt az oldal frissítése közben!');
+        }
+    }
+
+    // Szűrők alaphelyzetbe állítása
+    window.resetFilters = function() {
+        const searchInput = document.getElementById('search');
+        const studentSelect = document.getElementById('student');
+        
+        if (searchInput && studentSelect) {
+            searchInput.value = '';
+            studentSelect.value = '';
+            
+            // URL paraméterek törlése és navigálás
+            const params = new URLSearchParams(window.location.search);
+            params.delete('search');
+            params.delete('student');
+            params.delete('page');
+            navigateTo(window.location.pathname);
+        }
+    };
+
+    // Szűrők alkalmazása
+    window.applyFilters = function() {
+        const searchInput = document.getElementById('search');
+        const studentSelect = document.getElementById('student');
+        
+        if (searchInput && studentSelect) {
+            const params = new URLSearchParams(window.location.search);
+            const search = searchInput.value.trim();
+            const student = studentSelect.value;
+            
+            // Töröljük a régi paramétereket
+            params.delete('search');
+            params.delete('student');
+            params.delete('page');
+            
+            // Csak akkor adjuk hozzá az új paramétereket, ha nem üresek
+            if (search) params.set('search', search);
+            if (student) params.set('student', student);
+            
+            // Mindig az első oldalra állítjuk vissza a lapozást
+            params.set('page', '1');
+            
+            // Navigálás az új URL-re
+            navigateTo(window.location.pathname + '?' + params.toString());
+        }
+    };
+
+    // Event listener-ek inicializálása
+    function initializeEventListeners() {
+        // Rendezés kezelése
+        document.querySelectorAll('.sort-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const sort = header.dataset.sort;
+                const params = new URLSearchParams(window.location.search);
+                
+                if (sort === params.get('sort_by')) {
+                    const currentOrder = params.get('sort_order');
+                    if (currentOrder === 'asc') {
+                        params.set('sort_order', 'desc');
+                    } else if (currentOrder === 'desc') {
+                        params.delete('sort_by');
+                        params.delete('sort_order');
+                    } else {
+                        params.set('sort_order', 'asc');
+                    }
+                } else {
+                    params.set('sort_by', sort);
+                    params.set('sort_order', 'asc');
+                }
+                
+                navigateTo(window.location.pathname + '?' + params.toString());
+            });
+        });
+
+        // Select All checkbox és bulk műveletek kezelése
+        document.querySelectorAll('.class-section').forEach(classSection => {
+            // Select All checkbox
+            const selectAll = classSection.querySelector('.select-all');
+            if (selectAll) {
+                selectAll.onclick = function(e) {
+                    const checkboxes = classSection.querySelectorAll('.file-checkbox:not(.select-all)');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = e.target.checked;
+                    });
+                    updateBulkActionsVisibility(classSection);
+                };
+            }
+
+            // Egyedi checkbox-ok
+            classSection.querySelectorAll('.file-checkbox:not(.select-all)').forEach(checkbox => {
+                checkbox.onclick = function() {
+                    updateSelectAllState(classSection);
+                    updateBulkActionsVisibility(classSection);
+                };
+            });
+
+            // Bulk műveletek gombjai
+            const bulkDownloadBtn = classSection.querySelector('.bulk-download-btn');
+            const bulkDeleteBtn = classSection.querySelector('.bulk-delete-btn');
+
+            if (bulkDownloadBtn) {
+                bulkDownloadBtn.onclick = function() {
+                    const checkedBoxes = classSection.querySelectorAll('.file-checkbox:not(.select-all):checked');
+                    handleBulkDownload(checkedBoxes);
+                };
+            }
+
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.onclick = function() {
+                    const checkedBoxes = classSection.querySelectorAll('.file-checkbox:not(.select-all):checked');
+                    handleBulkDelete(checkedBoxes);
+                };
+            }
+        });
+
+        // Szűrők kezelése
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (btn.classList.contains('reset-btn')) {
+                    resetFilters();
+                } else {
+                    applyFilters();
+                }
+            });
+        });
+
+        // Enter billentyű kezelése a szűrő mezőkben
+        document.querySelectorAll('.filter-input').forEach(input => {
+            input.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyFilters();
+                }
+            });
+        });
+
+        // Lapozás kezelése
+        document.querySelectorAll('.page-btn').forEach(btn => {
+            if (!btn.classList.contains('disabled')) {
+                btn.addEventListener('click', () => {
+                    const page = btn.dataset.page;
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('page', page);
+                    navigateTo(window.location.pathname + '?' + params.toString());
+                });
+            }
+        });
+
+        // Fájl törlés és letöltés kezelése
+        document.querySelectorAll('.delete-file-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Biztosan törölni szeretnéd ezt a fájlt?')) return;
+                
+                const fileId = btn.dataset.fileId;
+                const row = btn.closest('tr');
+                
+                try {
+                    const response = await fetch(`/delete_file/${fileId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (row) row.remove();
+                        const tbody = row ? row.closest('tbody') : null;
+                        if (tbody && !tbody.querySelector('tr')) {
+                            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Ebben az osztályban még nincsenek feltöltött fájlok.</td></tr>';
+                        }
+                        updateFileCount();
+                    } else {
+                        alert(data.message || 'Hiba történt a fájl törlése közben!');
+                    }
+                } catch (error) {
+                    console.error('Delete file error:', error);
+                    alert('Hiba történt a fájl törlése közben!');
+                }
+            });
+        });
+
+        // Fájl letöltés kezelése
+        document.querySelectorAll('.action-btn.download').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const href = btn.href;
+                if (href) window.open(href, '_blank');
+            });
+        });
+    }
+
+    // Select All checkbox állapotának frissítése
+    function updateSelectAllState(classSection) {
+        const selectAll = classSection.querySelector('.select-all');
+        const checkboxes = classSection.querySelectorAll('.file-checkbox:not(.select-all)');
+        if (selectAll && checkboxes.length > 0) {
+            const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+            selectAll.checked = allChecked;
+        }
+    }
+
+    // Bulk műveletek gombjainak láthatóságának frissítése
+    function updateBulkActionsVisibility(classSection) {
+        const checkedBoxes = classSection.querySelectorAll('.file-checkbox:not(.select-all):checked');
+        const bulkActions = classSection.querySelector('.bulk-actions');
+        const selectedCount = classSection.querySelector('.selected-count');
+
+        if (bulkActions && selectedCount) {
+            if (checkedBoxes.length > 0) {
+                bulkActions.classList.add('visible');
+                selectedCount.textContent = `${checkedBoxes.length} fájl kiválasztva`;
+            } else {
+                bulkActions.classList.remove('visible');
+            }
+        }
+    }
+
+    // Tömeges letöltés kezelése
+    async function handleBulkDownload(checkedBoxes) {
+        if (!checkedBoxes || checkedBoxes.length === 0) {
+            alert('Nincsenek kiválasztott fájlok!');
+            return;
+        }
+
+        const fileIds = Array.from(checkedBoxes).map(cb => cb.value);
+        const total = fileIds.length;
+        let completed = 0;
+        
+        updateProgress(0);
+        
+        for (const fileId of fileIds) {
+            try {
+                const response = await fetch(`/download_file/${fileId}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    const contentDisposition = response.headers.get('Content-Disposition');
+                    if (contentDisposition) {
+                        a.download = contentDisposition.split('filename=')[1];
+                    }
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }
+            } catch (error) {
+                console.error('Error downloading file:', error);
+                alert('Hiba történt a fájl letöltése közben!');
+            }
+            
+            completed++;
+            updateProgress(Math.round((completed / total) * 100));
+        }
+    }
+
+    // Tömeges törlés kezelése
+    async function handleBulkDelete(checkedBoxes) {
+        if (!checkedBoxes || checkedBoxes.length === 0) {
+            alert('Nincsenek kiválasztott fájlok!');
+            return;
+        }
+
+        if (!confirm('Biztosan törölni szeretnéd a kiválasztott fájlokat?')) {
+            return;
+        }
+
+        const fileIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+        try {
+            const response = await fetch('/bulk_delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ file_ids: fileIds })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Töröljük a kiválasztott sorokat
+                checkedBoxes.forEach(cb => {
+                    const row = cb.closest('tr');
+                    if (row) row.remove();
+                });
+                
+                // Frissítjük az üres táblázatokat
+                document.querySelectorAll('tbody').forEach(tbody => {
+                    if (!tbody.querySelector('tr')) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Ebben az osztályban még nincsenek feltöltött fájlok.</td></tr>';
+                    }
+                });
+                
+                // Frissítjük a fájlok számát
+                updateFileCount();
+                
+                // Töröljük a kiválasztásokat
+                document.querySelectorAll('.file-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+                
+                // Frissítjük a bulk műveletek gombjait
+                document.querySelectorAll('.class-section').forEach(section => {
+                    updateBulkActionsVisibility(section);
+                });
+                
+                alert(data.message || 'A fájlok sikeresen törölve!');
+            } else {
+                alert(data.message || 'Hiba történt a fájlok törlése közben!');
+            }
+        } catch (error) {
+            console.error('Bulk delete error:', error);
+            alert('Hiba történt a fájlok törlése közben!');
+        }
+    }
+
+    // Fájlok számának frissítése
+    function updateFileCount() {
+        document.querySelectorAll('.class-section').forEach(section => {
+            const tbody = section.querySelector('tbody');
+            const countElement = section.querySelector('.file-count');
+            if (tbody && countElement) {
+                const fileCount = tbody.querySelectorAll('tr:not(.no-files)').length;
+                countElement.textContent = `${fileCount} fájl`;
+            }
+        });
+    }
+
+    // Progress bar frissítése
+    function updateProgress(progress) {
+        const progressBar = document.querySelector('.progress-bar');
+        const progressStatus = document.querySelector('.progress-status');
+        const progressContainer = document.querySelector('.progress-container');
+        
+        if (progressBar && progressStatus && progressContainer) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${progress}%`;
+            progressStatus.textContent = `${progress}%`;
+            
+            if (progress >= 100) {
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    progressStatus.textContent = '0%';
+                }, 1000);
+            }
+        }
+    }
+
+    // Kezdeti állapot beállítása
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeEventListeners();
+        updateFileCount();
+        
+        // Browser előre/hátra gombok kezelése
+        window.addEventListener('popstate', () => {
+            navigateTo(window.location.href);
+        });
+    });
+})();
+</script>
+{% endblock %} 

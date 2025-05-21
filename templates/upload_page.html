@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+
+{% block title %}Fájl Feltöltés{% endblock %}
+
+{% block meta_description %}Fájl feltöltési oldal a BuraBox fájlkezelő rendszerében{% endblock %}
+
+{% block extra_head %}
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.upload-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.upload-title {
+    color: var(--primary-color);
+    margin-bottom: 2rem;
+    text-align: center;
+    font-size: 2rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.upload-box {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.upload-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+}
+
+.file-input-container {
+    border: 2px dashed #ddd;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+}
+
+.file-input-container:hover {
+    border-color: var(--primary-color);
+    background-color: #f0f4f8;
+}
+
+.file-input-container.dragover {
+    border-color: var(--success-color);
+    background: #e8f5e9;
+    transform: scale(1.02);
+}
+
+.file-input {
+    display: none;
+}
+
+.file-input-center-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.upload-icon {
+    font-size: 4rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.file-input-container:hover .upload-icon {
+    transform: translateY(-5px);
+}
+
+.upload-text {
+    color: #666;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+.upload-subtext {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.file-list {
+    margin-top: 2rem;
+}
+
+.file-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.file-table th,
+.file-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.file-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #666;
+}
+
+.file-table tr:hover {
+    background: #f8f9fa;
+}
+
+.file-name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #333;
+}
+
+.file-icon {
+    color: #666;
+}
+
+.file-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+}
+
+.action-btn:hover {
+    background: #f8f9fa;
+}
+
+.action-btn.delete {
+    color: #dc3545;
+}
+
+.action-btn.delete:hover {
+    color: #c82333;
+}
+
+.upload-progress {
+    display: none;
+    margin-top: 1rem;
+}
+
+.progress {
+    height: 4px;
+    background: #eee;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #007bff;
+    width: 0;
+    transition: width 0.2s;
+}
+
+.no-files {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+}
+
+.alert {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fileInput = document.getElementById('file-input');
+    const dropZone = document.querySelector('.file-input-container');
+    const progressContainer = document.querySelector('.upload-progress');
+    const progressBar = document.querySelector('.progress-bar');
+    
+    // Fájl kiválasztás kezelése
+    fileInput.addEventListener('change', handleFileSelect);
+    
+    // Drag & Drop kezelése
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput.files = files;
+            handleFileSelect();
+        }
+    });
+    
+    // Fájl törlés kezelése
+    document.querySelectorAll('.delete-file-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('Biztosan törölni szeretnéd ezt a fájlt?')) return;
+            
+            const fileId = btn.dataset.fileId;
+            const row = btn.closest('tr');
+            
+            try {
+                const response = await fetch(`/delete_file/${fileId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    row.remove();
+                    // Ha ez volt az utolsó fájl, frissítsük a megjelenítést
+                    const tbody = document.querySelector('.file-table tbody');
+                    if (!tbody.querySelector('tr')) {
+                        tbody.innerHTML = '<tr><td colspan="4" class="no-files">Még nincsenek feltöltött fájlok.</td></tr>';
+                    }
+                } else {
+                    alert(data.error || 'Hiba történt a fájl törlése közben!');
+                }
+            } catch (error) {
+                alert('Hiba történt a fájl törlése közben!');
+            }
+        });
+    });
+    
+    function handleFileSelect() {
+        const file = fileInput.files[0];
+        if (!file) return;
+        
+        // Fájl feltöltése
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Progress megjelenítése
+        progressContainer.style.display = 'block';
+        progressBar.style.width = '0%';
+        
+        fetch('/upload_file', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Oldal újratöltése a friss fájllistáért
+                window.location.reload();
+            } else {
+                alert(data.message || 'Hiba történt a feltöltés közben!');
+            }
+        })
+        .catch(error => {
+            alert('Hiba történt a feltöltés közben!');
+        })
+        .finally(() => {
+            progressContainer.style.display = 'none';
+            fileInput.value = '';
+        });
+    }
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container upload-container">
+    <h1 class="upload-title">{{ student_name }} - {{ class_name }}</h1>
+    
+    <div class="upload-box">
+        <label class="file-input-container" for="file-input">
+            <div class="file-input-center-wrapper">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <div class="upload-text">Húzd ide a fájlt vagy kattints a feltöltéshez</div>
+                <div class="upload-subtext text-muted">Maximum méret: 15 MB</div>
+            </div>
+            <input type="file" id="file-input" class="file-input">
+        </label>
+        
+        <div class="upload-progress">
+            <div class="progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="file-list">
+        {% if files %}
+        <table class="file-table">
+            <thead>
+                <tr>
+                    <th>Fájl neve</th>
+                    <th>Méret</th>
+                    <th>Feltöltve</th>
+                    <th>Műveletek</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>
+                        <div class="file-name">
+                            <i class="fas fa-file file-icon"></i>
+                            {{ file.original_filename }}
+                        </div>
+                    </td>
+                    <td>{{ file.size|filesizeformat }}</td>
+                    <td>{{ file.uploaded_at|humanize_datetime }}</td>
+                    <td class="file-actions">
+                        <button class="action-btn delete delete-file-btn" data-file-id="{{ file.id }}" title="Törlés">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-files">
+            <p>Még nincsenek feltöltött fájlok.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

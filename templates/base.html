@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}BuraBox fájlkezelő rendszer{% endblock %}">
+    <meta name="theme-color" content="#c41e3a">
+    <title>{% block title %}{% endblock %} - BuraBox</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/burabox_v1.png') }}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/common.js') }}" defer></script>
+    {% block extra_js %}{% endblock %}
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" defer></script>
+    
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-color-dark: #0056b3;
+            --error-color: #dc3545;
+            --success-color: #28a745;
+            --info-color: #17a2b8;
+            --warning-color: #ffc107;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .flash-messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            max-width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .flash-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-out;
+            opacity: 0.95;
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .flash-message.error {
+            background-color: rgba(220, 53, 69, 0.95);
+            color: white;
+            border-left: 4px solid #bd2130;
+        }
+        
+        .flash-message.success {
+            background-color: rgba(40, 167, 69, 0.95);
+            color: white;
+            border-left: 4px solid #1e7e34;
+        }
+        
+        .flash-message.info {
+            background-color: rgba(23, 162, 184, 0.95);
+            color: white;
+            border-left: 4px solid #117a8b;
+        }
+        
+        .flash-message.warning {
+            background-color: rgba(255, 193, 7, 0.95);
+            color: #333;
+            border-left: 4px solid #d39e00;
+        }
+        
+        .flash-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0.3);
+            width: 100%;
+            transform-origin: left;
+        }
+        
+        .flash-message.error .flash-progress {
+            animation: progress 5s linear forwards;
+        }
+        
+        .flash-message:not(.error) .flash-progress {
+            animation: progress 3s linear forwards;
+        }
+        
+        @keyframes progress {
+            from {
+                transform: scaleX(1);
+            }
+            to {
+                transform: scaleX(0);
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 0.95;
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 0.95;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+        
+        .flash-message.fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        .header {
+            background-color: white;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: box-shadow 0.3s ease;
+        }
+
+        .header.scrolled {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1rem;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .logo-img {
+            height: 40px;
+            width: auto;
+            margin-right: 10px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            transition: transform 0.3s ease;
+        }
+
+        .logo-img:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background-color: var(--error-color);
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logout-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0));
+            transform: translateY(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .logout-btn:hover::before {
+            transform: translateY(0);
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .logout-btn i {
+            font-size: 1.1em;
+            transition: transform 0.2s ease;
+        }
+
+        .logout-btn:hover i {
+            transform: translateX(2px);
+        }
+
+        @media (max-width: 768px) {
+            .logo-text {
+                display: none;
+            }
+            
+            .logout-btn span {
+                display: none;
+            }
+            
+            .logout-btn {
+                padding: 8px;
+                border-radius: 50%;
+                aspect-ratio: 1;
+                display: grid;
+                place-items: center;
+            }
+            
+            .logout-btn i {
+                margin: 0;
+                font-size: 1.2em;
+            }
+            
+            .flash-messages {
+                max-width: calc(100% - 40px);
+                top: 10px;
+                right: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-content {
+                padding: 0 0.5rem;
+            }
+            
+            .logo-img {
+                height: 32px;
+            }
+        }
+    </style>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Skip link for accessibility -->
+    <a href="#main-content" class="skip-link visually-hidden">Ugrás a tartalomhoz</a>
+    
+    <!-- Header -->
+    {% block header %}
+    <header class="header" role="banner">
+        <div class="header-content container">
+            <div class="header-logo">
+                <a href="{{ url_for('landing_page') }}" aria-label="BuraBox" class="logo-link">
+                    <img src="{{ url_for('static', filename='img/burabox_v1.png') }}" alt="BuraBox" class="logo-img">
+                    <span class="logo-text">BuraBox</span>
+                </a>
+            </div>
+            
+            <nav class="header-nav" role="navigation" aria-label="Főmenü">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('logout') }}" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Kijelentkezés</span>
+                    </a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+    {% endblock %}
+    
+    <!-- Flash messages -->
+    <div class="flash-messages container" role="alert" aria-live="polite">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message {{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    
+    <!-- Main content -->
+    <main id="main-content" class="main-content container" role="main">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer" role="contentinfo">
+        <style>
+            .footer {
+                padding: 0.5rem 0;
+                margin-top: auto;
+                background: #f8f9fa;
+            }
+            
+            .footer-content {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 0.7;
+                transition: opacity 0.3s ease;
+                height: 24px;
+                line-height: 24px;
+            }
+            
+            .footer-content:hover {
+                opacity: 1;
+            }
+            
+            .footer-text {
+                color: #666;
+                font-size: 0.85rem;
+                font-weight: 500;
+            }
+        </style>
+        <div class="footer-content">
+            <span class="footer-text">BuraBox v1.0.0</span>
+        </div>
+    </footer>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteClassModal" tabindex="-1" aria-labelledby="deleteClassModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteClassModalLabel">Osztály törlése</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="deleteClassModalText">Biztosan törölni szeretné ezt az osztályt?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteClassBtn">Törlés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Class Modal -->
+    <div class="modal fade" id="editClassModal" tabindex="-1" aria-labelledby="editClassModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editClassModalLabel">Osztály szerkesztése</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editClassForm">
+                        <input type="hidden" id="editClassOriginalName" name="original_class_name">
+                        <div class="mb-3">
+                            <label for="editClassName" class="form-label">Osztály neve</label>
+                            <input type="text" class="form-control" id="editClassName" name="class_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="editClassTeacher" class="form-label">Tanár</label>
+                            <select class="form-control" id="editClassTeacher" name="teacher_name">
+                                <option value="">Válasszon tanárt...</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Mégse</button>
+                    <button type="button" class="btn btn-primary" id="saveClassEditBtn">Mentés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading overlay -->
+    <div class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <div class="loading-text">Betöltés...</div>
+        </div>
+    </div>
+    
+    <!-- Mobile menu script -->
+    <script>
+        let currentClassToDelete = null;
+        const deleteClassModal = new bootstrap.Modal(document.getElementById('deleteClassModal'));
+        const editClassModal = new bootstrap.Modal(document.getElementById('editClassModal'));
+        
+        function deleteClass(className) {
+            currentClassToDelete = className;
+            document.getElementById('deleteClassModalText').textContent = `Biztosan törölni szeretné a(z) ${className} osztályt?`;
+            deleteClassModal.show();
+        }
+        
+        function editClass(className) {
+            // Betöltjük az osztály adatait
+            $.ajax({
+                url: `/get_class_data/${className}`,
+                type: 'GET',
+                success: function(response) {
+                    if (response.success) {
+                        // Kitöltjük a form-ot
+                        document.getElementById('editClassOriginalName').value = className;
+                        document.getElementById('editClassName').value = response.class_name;
+                        
+                        // Tanárok betöltése és kiválasztása
+                        const teacherSelect = document.getElementById('editClassTeacher');
+                        teacherSelect.innerHTML = '<option value="">Válasszon tanárt...</option>';
+                        response.teachers.forEach(teacher => {
+                            const option = document.createElement('option');
+                            option.value = teacher;
+                            option.textContent = teacher;
+                            if (teacher === response.current_teacher) {
+                                option.selected = true;
+                            }
+                            teacherSelect.appendChild(option);
+                        });
+                        
+                        // Modal megjelenítése
+                        editClassModal.show();
+                    } else {
+                        alert('Hiba történt az osztály adatainak betöltése közben!');
+                    }
+                },
+                error: function(xhr) {
+                    alert('Hiba történt: ' + xhr.responseText);
+                }
+            });
+        }
+        
+        document.getElementById('confirmDeleteClassBtn').addEventListener('click', function() {
+            if (!currentClassToDelete) return;
+            
+            // Először elrejtjük a modal-t
+            deleteClassModal.hide();
+            
+            // Küldjük a törlési kérést
+            $.ajax({
+                url: '/delete_class',
+                type: 'POST',
+                data: { class_name: currentClassToDelete },
+                success: function(response) {
+                    if (response.warning) {
+                        // Ha vannak diákok, új modal szöveggel megjelenítjük újra
+                        document.getElementById('deleteClassModalText').textContent = response.message;
+                        deleteClassModal.show();
+                        
+                        // A megerősítő gomb eseménykezelőjét ideiglenesen módosítjuk
+                        const confirmBtn = document.getElementById('confirmDeleteClassBtn');
+                        const originalClickHandler = confirmBtn.onclick;
+                        
+                        confirmBtn.onclick = function() {
+                            deleteClassModal.hide();
+                            // Küldjük a megerősített törlési kérést
+                            $.ajax({
+                                url: '/delete_class',
+                                type: 'POST',
+                                data: { 
+                                    class_name: currentClassToDelete,
+                                    confirmed: true 
+                                },
+                                success: function(confirmResponse) {
+                                    if (confirmResponse.success) {
+                                        window.location.reload();
+                                    } else {
+                                        alert(confirmResponse.message);
+                                    }
+                                },
+                                error: function(xhr) {
+                                    alert('Hiba történt: ' + xhr.responseText);
+                                }
+                            });
+                            // Visszaállítjuk az eredeti eseménykezelőt
+                            confirmBtn.onclick = originalClickHandler;
+                        };
+                    } else if (response.success) {
+                        window.location.reload();
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Hiba történt: ' + xhr.responseText);
+                }
+            });
+        });
+        
+        document.getElementById('saveClassEditBtn').addEventListener('click', function() {
+            const form = document.getElementById('editClassForm');
+            const formData = new FormData(form);
+            
+            $.ajax({
+                url: '/edit_class',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        editClassModal.hide();
+                        window.location.reload();
+                    } else {
+                        alert(response.message || 'Hiba történt a mentés közben!');
+                    }
+                },
+                error: function(xhr) {
+                    alert('Hiba történt: ' + xhr.responseText);
+                }
+            });
+        });
+        
+        // Modal bezárásakor töröljük a currentClassToDelete változót
+        document.getElementById('deleteClassModal').addEventListener('hidden.bs.modal', function () {
+            currentClassToDelete = null;
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close flash messages
+            document.querySelectorAll('.alert-close').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.alert').remove();
+                });
+            });
+            
+            // Flash üzenetek automatikus eltüntetése
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(message => {
+                // Hibaüzenetek tovább maradnak láthatóak
+                const duration = message.classList.contains('error') ? 5000 : 3000;
+                
+                setTimeout(() => {
+                    message.classList.add('fade-out');
+                    setTimeout(() => {
+                        message.remove();
+                    }, 500);
+                }, duration);
+                
+                // Kattintásra azonnal eltűnik
+                message.addEventListener('click', () => {
+                    message.classList.add('fade-out');
+                    setTimeout(() => {
+                        message.remove();
+                    }, 500);
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

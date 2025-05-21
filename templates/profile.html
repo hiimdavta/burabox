@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Profil</h1>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-3">
+                        {% if current_user.avatar %}
+                        <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar) }}" alt="Profilkép" class="rounded-circle" width="150" height="150">
+                        {% else %}
+                        <img src="{{ url_for('static', filename='img/burabox_v1.png') }}" alt="BuraBox" class="profile-image">
+                        {% endif %}
+                    </div>
+                    
+                    <h2 class="h4 mb-3">{{ current_user.name }}</h2>
+                    
+                    <div class="profile-info">
+                        <p class="mb-2">
+                            <i class="fas fa-user-tag me-2 text-primary"></i>
+                            {{ current_user.role }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            {{ current_user.email }}
+                        </p>
+                        {% if current_user.phone %}
+                        <p class="mb-2">
+                            <i class="fas fa-phone me-2 text-primary"></i>
+                            {{ current_user.phone }}
+                        </p>
+                        {% endif %}
+                        <p class="mb-2">
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                            Regisztráció: {{ current_user.created_at.strftime('%Y.%m.%d') }}
+                        </p>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-edit me-2"></i>Profil szerkesztése
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="h5 mb-3">Jelszó módosítása</h3>
+                    <form method="POST" action="{{ url_for('change_password') }}" class="password-form">
+                        {{ password_form.csrf_token }}
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Jelenlegi jelszó</label>
+                            <input type="password" class="form-control" id="current_password" name="current_password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">Új jelszó</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Új jelszó megerősítése</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-key me-2"></i>Jelszó módosítása
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h3 class="h4 mb-4">Tevékenységek</h3>
+                    
+                    <div class="activity-tabs">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#uploads" type="button" role="tab">
+                                    <i class="fas fa-upload me-2"></i>Feltöltések
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#downloads" type="button" role="tab">
+                                    <i class="fas fa-download me-2"></i>Letöltések
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#notifications" type="button" role="tab">
+                                    <i class="fas fa-bell me-2"></i>Értesítések
+                                </button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content mt-4">
+                            <div class="tab-pane fade show active" id="uploads" role="tabpanel">
+                                {% if uploads %}
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Fájl</th>
+                                                <th>Dátum</th>
+                                                <th>Méret</th>
+                                                <th>Műveletek</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for upload in uploads %}
+                                            <tr>
+                                                <td>{{ upload.filename }}</td>
+                                                <td>{{ upload.uploaded_at.strftime('%Y.%m.%d %H:%M') }}</td>
+                                                <td>{{ upload.size }}</td>
+                                                <td>
+                                                    <a href="{{ url_for('download_file', file_id=upload.id) }}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-muted">Még nincsenek feltöltések.</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="tab-pane fade" id="downloads" role="tabpanel">
+                                {% if downloads %}
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Fájl</th>
+                                                <th>Dátum</th>
+                                                <th>Méret</th>
+                                                <th>Műveletek</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for download in downloads %}
+                                            <tr>
+                                                <td>{{ download.filename }}</td>
+                                                <td>{{ download.downloaded_at.strftime('%Y.%m.%d %H:%M') }}</td>
+                                                <td>{{ download.size }}</td>
+                                                <td>
+                                                    <a href="{{ url_for('download_file', file_id=download.id) }}" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                {% else %}
+                                <p class="text-muted">Még nincsenek letöltések.</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="tab-pane fade" id="notifications" role="tabpanel">
+                                {% if notifications %}
+                                <div class="notification-list">
+                                    {% for notification in notifications %}
+                                    <div class="notification-item {% if not notification.read %}unread{% endif %}">
+                                        <div class="notification-icon">
+                                            <i class="fas fa-{{ notification.icon }}"></i>
+                                        </div>
+                                        <div class="notification-content">
+                                            <p class="mb-1">{{ notification.message }}</p>
+                                            <small class="text-muted">{{ notification.created_at.strftime('%Y.%m.%d %H:%M') }}</small>
+                                        </div>
+                                        {% if not notification.read %}
+                                        <button class="btn btn-sm btn-link mark-read" data-notification-id="{{ notification.id }}">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <p class="text-muted">Nincsenek értesítések.</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Profil szerkesztése</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('edit_profile') }}" class="edit-profile-form">
+                    {{ profile_form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Név</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ current_user.name }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">E-mail cím</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Telefonszám</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" value="{{ current_user.phone }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Profilkép</label>
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-2"></i>Mentés
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-avatar img {
+    border: 3px solid var(--primary-color);
+    padding: 3px;
+    background-color: var(--secondary-color);
+}
+
+.profile-info {
+    text-align: left;
+    margin: 0 auto;
+    max-width: 250px;
+}
+
+.activity-tabs .nav-tabs {
+    border-bottom: 2px solid var(--gray-200);
+}
+
+.activity-tabs .nav-link {
+    color: var(--gray-600);
+    border: none;
+    padding: 0.75rem 1rem;
+    margin-right: 1rem;
+    position: relative;
+}
+
+.activity-tabs .nav-link:hover {
+    color: var(--primary-color);
+}
+
+.activity-tabs .nav-link.active {
+    color: var(--primary-color);
+    background: none;
+    border: none;
+}
+
+.activity-tabs .nav-link.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--primary-color);
+}
+
+.notification-item {
+    display: flex;
+    align-items: start;
+    padding: 1rem;
+    border-bottom: 1px solid var(--gray-200);
+    transition: background-color var(--transition-duration);
+}
+
+.notification-item:hover {
+    background-color: var(--gray-100);
+}
+
+.notification-item.unread {
+    background-color: var(--gray-100);
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    background-color: var(--primary-light);
+    color: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.mark-read {
+    color: var(--gray-600);
+    padding: 0;
+    margin-left: 1rem;
+}
+
+.mark-read:hover {
+    color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .profile-info {
+        max-width: none;
+    }
+    
+    .activity-tabs .nav-link {
+        padding: 0.5rem;
+        margin-right: 0.5rem;
+    }
+}
+</style>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark notification as read
+    document.querySelectorAll('.mark-read').forEach(button => {
+        button.addEventListener('click', function() {
+            const notificationId = this.dataset.notificationId;
+            fetch(`/notifications/${notificationId}/mark-read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    this.closest('.notification-item').classList.remove('unread');
+                    this.remove();
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 
