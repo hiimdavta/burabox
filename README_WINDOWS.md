@@ -1,9 +1,9 @@
-# Iskolai Fájlkezelő Rendszer - Telepítési Útmutató
+# BuraBox - Iskolai Fájlkezelő Rendszer Windows Telepítési Útmutató
 
 > Ez a dokumentum a telepítési lépéseket tartalmazza Windows és macOS rendszereken. A teljes dokumentációért lásd a [fő README.md](README.md) fájlt.
 
 ## Verzió
-Ez a dokumentum a v1.0.0 verzióhoz tartozik.
+Ez a dokumentum a v1.0.3 verzióhoz tartozik.
 
 ## Windows Telepítés
 
@@ -17,8 +17,8 @@ Ez a dokumentum a v1.0.0 verzióhoz tartozik.
 1. Töltsd le a projektet:
    ```bash
    # Git használatával (ajánlott):
-   git clone https://github.com/hiimdavta/burabox_v1.0.0.git
-   cd burabox_v1.0.0
+   git clone https://github.com/hiimdavta/burabox.git
+   cd burabox
    
    # VAGY manuálisan:
    # Töltsd le és csomagold ki a ZIP fájlt
@@ -72,8 +72,8 @@ A szerver elérhető lesz:
 1. Töltsd le a projektet:
    ```bash
    # Git használatával (ajánlott):
-   git clone https://github.com/hiimdavta/burabox_v1.0.0.git
-   cd burabox_v1.0.0
+   git clone https://github.com/hiimdavta/burabox.git
+   cd burabox
    
    # VAGY manuálisan:
    # Töltsd le és csomagold ki a ZIP fájlt

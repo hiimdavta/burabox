@@ -180,7 +180,7 @@ sudo yum install python3.11 nginx supervisor  # CentOS/RHEL
 2. Alkalmazás telepítése:
 ```bash
 # Alkalmazás klónozása
-git clone https://github.com/hiimdavta/burabox_v1.0.0.git /opt/burabox
+git clone https://github.com/hiimdavta/burabox.git /opt/burabox
 cd /opt/burabox
 
 # Virtuális környezet létrehozása
@@ -265,17 +265,19 @@ A telepítés előtt ellenőrizd a következőket:
 ## Verziókövetés
 A projekt verzióit a [Semantic Versioning](https://semver.org/) követi (MAJOR.MINOR.PATCH):
 
+### v1.0.3 (2024-03-XX)
+- 🚀 Teljesítmény optimalizációk
+- 🔐 Továbbfejlesztett biztonsági funkciók
+- 🌐 Többnyelvű támogatás
+- 📧 Email értesítések
+- ⚡ Caching rendszer
+- 🎨 UI/UX fejlesztések
+
 ### v1.0.0 (2024-03-XX)
 - 🎉 Első stabil verzió
 - 🔐 Környezeti változók bevezetése
 - 🛡️ Biztonsági fejlesztések
 - 📝 Dokumentáció bővítése
-
-### v0.9.0 (2024-03-XX)
-- ⚠️ Béta verzió
-- 🔐 Alapvető biztonsági funkciók
-- 📁 Fájlkezelés implementálása
-- 👥 Felhasználói szerepkörök
 
 ## Fejlesztői útmutató
 
