@@ -2,8 +2,7 @@
 
 > Ez a dokumentum a telepítési lépéseket tartalmazza Windows és macOS rendszereken. A teljes dokumentációért lásd a [fő README.md](README.md) fájlt.
 
-## Verzió
-Ez a dokumentum a v1.0.3 verzióhoz tartozik.
+## Verzió: v1.0.4
 
 ## Windows Telepítés
 
@@ -17,7 +16,7 @@ Ez a dokumentum a v1.0.3 verzióhoz tartozik.
 1. Töltsd le a projektet:
    ```bash
    # Git használatával (ajánlott):
-   git clone https://github.com/hiimdavta/burabox.git
+   git clone https://github.com/davta/burabox.git
    cd burabox
    
    # VAGY manuálisan:
@@ -72,7 +71,7 @@ A szerver elérhető lesz:
 1. Töltsd le a projektet:
    ```bash
    # Git használatával (ajánlott):
-   git clone https://github.com/hiimdavta/burabox.git
+   git clone https://github.com/davta/burabox.git
    cd burabox
    
    # VAGY manuálisan:

@@ -1,7 +1,7 @@
-# BuraBox - Iskolai Fájlkezelő Rendszer v1.0.3
+# BuraBox - Iskolai Fájlkezelő Rendszer v1.0.4
 
 ## Leírás
-BuraBox egy modern, biztonságos és felhasználóbarát iskolai fájlkezelő rendszer. A rendszer lehetővé teszi a tanárok és diákok számára a fájlok hatékony kezelését, feltöltését és megosztását osztályonként. A legújabb verzió (1.0.3) jelentős biztonsági és funkcionális fejlesztéseket tartalmaz.
+BuraBox egy modern, biztonságos és felhasználóbarát iskolai fájlkezelő rendszer. A rendszer lehetővé teszi a tanárok és diákok számára a fájlok hatékony kezelését, feltöltését és megosztását osztályonként. A legújabb verzió (1.0.4) jelentős biztonsági és funkcionális fejlesztéseket tartalmaz.
 
 ## 🚀 Főbb funkciók
 - 🔐 Többfaktoros bejelentkezési rendszer (admin, tanár, diák)
@@ -265,13 +265,15 @@ A telepítés előtt ellenőrizd a következőket:
 ## Verziókövetés
 A projekt verzióit a [Semantic Versioning](https://semver.org/) követi (MAJOR.MINOR.PATCH):
 
-### v1.0.3 (2024-03-XX)
-- 🚀 Teljesítmény optimalizációk
-- 🔐 Továbbfejlesztett biztonsági funkciók
-- 🌐 Többnyelvű támogatás
-- 📧 Email értesítések
-- ⚡ Caching rendszer
-- 🎨 UI/UX fejlesztések
+### v1.0.4 (2024.03.21)
+- Fájl feltöltési időpontok megjelenítésének módosítása (év.hónap.nap óra:perc formátum)
+- Rendszer optimalizálások és hibajavítások
+- Dokumentáció frissítése
+
+### v1.0.3 (2024.03.20)
+- Tanár vezérlőpult fejlesztése
+- Fájl feltöltési időpontok megjelenítése
+- Rendszer optimalizálások
 
 ### v1.0.0 (2024-03-XX)
 - 🎉 Első stabil verzió
